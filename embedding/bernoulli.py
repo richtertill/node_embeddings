@@ -1,67 +1,31 @@
-disp_avlbl = True
 import os
-if 'DISPLAY' not in os.environ:
-    disp_avlbl = False
-    import matplotlib
-    matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-import numpy as np
-# import scipy.io as sio
-# import networkx as nx
-
+import sys
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as dist
+from time import time
 
-import sys
 sys.path.append('./')
 sys.path.append(os.path.realpath(__file__))
 
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
-from time import time
-
-
 class Bernoulli(StaticGraphEmbedding):
 
-    def __init__(self, *hyper_dict, **kwargs):
+    def __init__(self, embedding_dimension=64, distance_meassure='sigmoid'):
         ''' Initialize the Bernoulli class
 
         Args:
             d: dimension of the embedding
-            beta: penalty parameter in matrix B of 2nd order objective
-            alpha: weighing hyperparameter for 1st order objective
-            nu1: L1-reg hyperparameter
-            nu2: L2-reg hyperparameter
-            K: number of hidden layers in encoder/decoder
-            n_units: vector of length K-1 containing #units in hidden layers
-                     of encoder/decoder, not including the units in the
-                     embedding layer
-            rho: bounding ratio for number of units in consecutive layers (< 1)
-            n_iter: number of sgd iterations for first embedding (const)
-            xeta: sgd step size parameter
-            n_batch: minibatch size for SGD
-            modelfile: Files containing previous encoder and decoder models
-            weightfile: Files containing previous encoder and decoder weights
+            distance_meassure: name of distance meassure ('sigmoid','gaussian',...)
         '''
-        hyper_params = {
-            'method_name': 'sdne',
-            'actfn': 'relu',
-            'modelfile': None,
-            'weightfile': None,
-            'savefilesuffix': None
-        }
 
-        hyper_params.update(kwargs)
-        for key in hyper_params.keys():
-            self.__setattr__('_%s' % key, hyper_params[key])
-        for dictionary in hyper_dict:
-            for key in dictionary:
-                self.__setattr__('_%s' % key, dictionary[key])
+        self._d = embedding_dimension
+        self._distance_meassure = distance_meassure
+        self._method_name = "Bernoulli"
 
     def get_method_name(self):
         return self._method_name
@@ -76,8 +40,8 @@ class Bernoulli(StaticGraphEmbedding):
 
         # Convert adjacency matrix to a CUDA Tensor
         adjmat_cuda = torch.FloatTensor(AdjMat.toarray()).cuda()
-        # Initialize self._model
-        # Input
+        
+        #### Model definition ####
 
         # Define the embedding matrix
         embedding_dim = 64
@@ -87,12 +51,15 @@ class Bernoulli(StaticGraphEmbedding):
         # The bias is initialized in such a way that if the dot product between two embedding vectors is 0 
         # (i.e. z_i^T z_j = 0), then their connection probability is sigmoid(b) equals to the 
         # background edge probability in the graph. This significantly speeds up training
+        # TODO: WHY does it speed up the training?
         edge_proba = self._num_edges / (self._num_nodes**2 - self._num_nodes)
         bias_init = np.log(edge_proba / (1 - edge_proba))
         b = nn.Parameter(torch.Tensor([bias_init]))
 
-        # Objectives
-        def compute_loss_v1(adjmat_cuda, emb, b=0.0): 
+        ## Define different loss functions
+        
+        # sigmoid loss function
+        def compute_loss_sigmoid(adjmat_cuda, emb, b=0.0): 
             """Compute the negative log-likelihood of the Bernoulli model."""
             logits = emb @ emb.t() + b
             logits = logits.cuda()
@@ -102,9 +69,21 @@ class Bernoulli(StaticGraphEmbedding):
             # This will kill the gradients on the diagonal.
             loss[np.diag_indices(adjmat_cuda.shape[0])] = 0.0
             return loss.mean()
+        
+        # other loss function
 
-        # Model
-
+        
+        # Choose loss function
+        if self._distance_meassure == 'sigmoid':
+            compute_loss = compute_loss_sigmoid
+        #elif self._distance_meassure == 'sigmoid':
+        
+        
+        #### Model definition end ####
+        
+        
+        #### Learning ####
+        
         # Regularize the embeddings but don't regularize the bias
         # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
         opt = torch.optim.Adam([
@@ -112,8 +91,8 @@ class Bernoulli(StaticGraphEmbedding):
             {'params': [b]}],
             lr=1e-2)
 
-        compute_loss = compute_loss_v1
-        # Learn embeddings
+        
+        # Training loop
         max_epochs = 5000
         display_step = 250
 
@@ -126,6 +105,7 @@ class Bernoulli(StaticGraphEmbedding):
             if epoch % display_step == 0:
                 print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
 
+        
         
         # Save the embedding
         emb_np = emb.cpu().detach().numpy()
