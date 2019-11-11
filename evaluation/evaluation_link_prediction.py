@@ -1,15 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Author: Mara Alexandru Cristian
-# Contact: alexandru.mara@ugent.be
-# Date: 18/12/2018
-
-# Note: This is just an example of how to use most of the low level functions in EvalNE.
-# If possible the Evaluator and Split classes should be used as they simplify the pipeline.
-# Diagram of the evaluation:
-# preprocess_data -> split_train_test -> compute_node/edge_emb -> predict_edges -> evaluate_accuracy
-# preprocess_data -> split_train_test -> link_prediction -> evaluate_accuracy
-
 import os
 import random
 from time import time
