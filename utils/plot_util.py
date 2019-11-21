@@ -1,6 +1,8 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import random
+import datetime
+import pathlib
 
 def get_node_color(node_community):
     cnames = [item[0] for item in matplotlib.colors.cnames.iteritems()]
@@ -50,3 +52,16 @@ def plot_ts(ts_df, plot_title, eventDates, eventLabels=None, save_file_name=None
 		fig.savefig(save_file_name, bbox_inches='tight')
 	if show:
 		fig.show()
+
+def create_experiment_folder():
+	now = datetime.datetime.now()
+	year = '{:04d}'.format(now.year)
+	month = '{:02d}'.format(now.month)
+	day = '{:02d}'.format(now.day)
+	minute = '{:02d}'.format(now.minute)
+	hour = '{:02d}'.format(now.hour)
+	timestamp = year + "_" + month + "_" + day + "_" + hour + "_" + minute
+	foldername = timestamp
+	directory_name = "results/" + foldername 
+	pathlib.Path(directory_name).mkdir(parents=True, exist_ok=True) 
+	return directory_name

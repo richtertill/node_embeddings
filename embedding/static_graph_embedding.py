@@ -42,6 +42,14 @@ class StaticGraphEmbedding:
 			A numpy array of size #nodes * d
 		'''
 		pass
+	
+	def get_embedding_dim(self):
+		''' Returns the size of the embedding vector
+
+		Return: 
+			A number representing the size of the embedding vector
+		'''
+		pass
 
 	def get_edge_weight(self, i, j):
 		'''Compute the weight for edge between node i and node j

@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.distributions as dist
+from torch.utils.tensorboard import SummaryWriter
 from time import time
 
 sys.path.append('./')
@@ -15,7 +16,7 @@ from utils import graph_util
 
 class Bernoulli(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, distance_meassure='sigmoid'):
+    def __init__(self, embedding_dimension=64, distance_meassure='sigmoid', max_epoch=5000, learning_rate=1e-2, weight_decay=1e-7, display_step=250):
         ''' Initialize the Bernoulli class
 
         Args:
@@ -26,12 +27,23 @@ class Bernoulli(StaticGraphEmbedding):
         self._d = embedding_dimension
         self._distance_meassure = distance_meassure
         self._method_name = "Bernoulli"
+        self._max_epoch = max_epoch
+        self._learning_rate = learning_rate
+        self._weight_decay = weight_decay
+        self._display_step = display_step
 
     def get_method_name(self):
         return self._method_name
 
     def get_method_summary(self):
         return '%s_%d' % (self._method_name, self._d)
+    
+    def get_embedding_dim(self):
+        return _d
+
+    def set_summary_folder(self, path):
+        self._summary_path = path
+        self._writer = SummaryWriter(self._summary_path)
 
     def learn_embedding(self, AdjMat):
 
@@ -78,7 +90,6 @@ class Bernoulli(StaticGraphEmbedding):
             compute_loss = compute_loss_sigmoid
         #elif self._distance_meassure == 'sigmoid':
         
-        
         #### Model definition end ####
         
         
@@ -87,28 +98,25 @@ class Bernoulli(StaticGraphEmbedding):
         # Regularize the embeddings but don't regularize the bias
         # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
         opt = torch.optim.Adam([
-            {'params': [emb], 'weight_decay': 1e-7},
+            {'params': [emb], 'weight_decay': self._weight_decay},
             {'params': [b]}],
-            lr=1e-2)
+            lr=self._learning_rate)
 
-        
         # Training loop
-        max_epochs = 5000
-        display_step = 250
-
-        for epoch in range(max_epochs):
+        for epoch in range(self._max_epoch):
             opt.zero_grad()
             loss = compute_loss(adjmat_cuda, emb, b)
             loss.backward()
             opt.step()
             # Training loss is printed every display_step epochs
-            if epoch % display_step == 0:
-                print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+            if epoch % self._display_step == 0 and self._summary_path:
+                #print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+                self._writer.add_scalar('Loss/train', loss.item(), epoch)
 
-        
-        
-        # Save the embedding
+        # Put the embedding back on the CPU
         emb_np = emb.cpu().detach().numpy()
+
+        # Save the embedding
 #         np.savetxt('embedding_' + self._savefilesuffix + '.txt', emb_np)
         
         return emb_np
@@ -117,74 +125,3 @@ class Bernoulli(StaticGraphEmbedding):
 #         return self._Y if filesuffix is None else np.loadtxt(
 #             'embedding_' + filesuffix + '.txt'
 #         )
-
-    # def get_edge_weight(self, i, j, embed=None, filesuffix=None):
-#         if embed is None:
-#             if filesuffix is None:
-#                 embed = self._Y
-#             else:
-#                 embed = np.loadtxt('embedding_' + filesuffix + '.txt')
-#         if i == j:
-#             return 0
-#         else:
-#             S_hat = self.get_reconst_from_embed(embed[(i, j), :], filesuffix)
-#             return (S_hat[i, j] + S_hat[j, i]) / 2
-
-    # def get_reconstructed_adj(self, embed=None, node_l=None, filesuffix=None):
-#         if embed is None:
-#             if filesuffix is None:
-#                 embed = self._Y
-#             else:
-#                 embed = np.loadtxt('embedding_' + filesuffix + '.txt')
-#         S_hat = self.get_reconst_from_embed(embed, node_l, filesuffix)
-#         return graphify(S_hat)
-
-    # def get_reconst_from_embed(self, embed, node_l=None, filesuffix=None):
-#         if filesuffix is None:
-#             if node_l is not None:
-#                 return self._decoder.predict(
-#                     embed,
-#                     batch_size=self._n_batch)[:, node_l]
-#             else:
-#                 return self._decoder.predict(embed, batch_size=self._n_batch)
-#         else:
-#             try:
-#                 decoder = model_from_json(
-#                     open('decoder_model_' + filesuffix + '.json').read()
-#                 )
-#             except:
-#                 print('Error reading file: {0}. Cannot load previous model'.format('decoder_model_'+filesuffix+'.json'))
-#                 exit()
-#             try:
-#                 decoder.load_weights('decoder_weights_' + filesuffix + '.hdf5')
-#             except:
-#                 print('Error reading file: {0}. Cannot load previous weights'.format('decoder_weights_'+filesuffix+'.hdf5'))
-#                 exit()
-#             if node_l is not None:
-#                 return decoder.predict(embed, batch_size=self._n_batch)[:, node_l]
-#             else:
-#                 return decoder.predict(embed, batch_size=self._n_batch)
-
-
-# if __name__ == '__main__':
-#     # load Zachary's Karate graph
-#     edge_f = 'data/karate.edgelist'
-#     G = graph_util.loadGraphFromEdgeListTxt(edge_f, directed=False)
-#     G = G.to_directed()
-#     res_pre = 'results/testKarate'
-#     graph_util.print_graph_stats(G)
-#     t1 = time()
-#     embedding = SDNE(d=2, beta=5, alpha=1e-5, nu1=1e-6, nu2=1e-6, K=3,
-#                      n_units=[50, 15], rho=0.3, n_iter=50, xeta=0.01,
-#                      n_batch=500,
-#                      modelfile=['./intermediate/enc_model.json',
-#                                 './intermediate/dec_model.json'],
-#                      weightfile=['./intermediate/enc_weights.hdf5',
-#                                  './intermediate/dec_weights.hdf5'])
-#     embedding.learn_embedding(graph=G, edge_f=None,
-#                               is_weighted=True, no_python=True)
-#     print('SDNE:\n\tTraining time: %f' % (time() - t1))
-
-#     viz.plot_embedding2D(embedding.get_embedding(),
-#                          di_graph=G, node_colors=None)
-#     plt.show()
