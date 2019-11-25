@@ -87,26 +87,25 @@ def expLP(digraph, dataset_name, embedding_method, rounds,
           result_folder, train_ratio=0.8,
 		  undirected=True):
 
-	print('\tLink Prediction is started...')
+	print('\tLink prediction evaluation has started...')
 
 	pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
-	summ_file = open('%s/link_prediction_summary.lpsumm' % result_folder, 'w')
-	summ_file.write(f'{dataset_name}\n')
-	auc_scores = [None] * rounds
+	with open(result_folder + '/link_prediction_summary.txt', 'a') as file:
+		file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: ')
 
-	summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
-	for round_id in range(rounds):
-		summary_folder_extended_round = summary_folder_extended + str(round_id+1)
-		pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
-		embedding_method.set_summary_folder(summary_folder_extended_round)
-		auc_scores[round_id] = evaluateStaticLinkPrediction(digraph, embedding_method,
-                                         train_ratio=train_ratio,
-                                         undirected=undirected)
+		auc_scores = [None] * rounds
 
-	mean_auc_score = np.mean(np.array(auc_scores))
-	summ_file.write(f'Mean AUC score: {str(mean_auc_score)}' )
-	summ_file.write("\n")
-	summ_file.close()
+		summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
+		for round_id in range(rounds):
+			summary_folder_extended_round = summary_folder_extended + str(round_id+1)
+			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
+			embedding_method.set_summary_folder(summary_folder_extended_round)
+			auc_scores[round_id] = evaluateStaticLinkPrediction(digraph, embedding_method,
+											train_ratio=train_ratio,
+											undirected=undirected)
+
+		mean_auc_score = np.mean(np.array(auc_scores))
+		file.write(f'{mean_auc_score}\n' )
 
 def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":
