@@ -97,7 +97,6 @@ class KL(StaticGraphEmbedding):
 			#KL(P||softmax(Z^TZ))=sum_i(P_i log (P_i / softmax(Z^TZ)_i))
 			#As our objective is to minimize the KL divergence we can skip sum_i(P_i log(P_i)), which is const. in Z
 			#This results in our objective to be min Z -sum_i(P_i log(softmax(Z^TZ)_i) )
-			degree=torch.from_numpy(adjmat_cuda.sum(axis=1))
 			inv_degree=torch.diaglag(1/degree).cuda()
 			P = inv_degree.mm(adjmat_cuda)
 			loss = -(P*torch.log(10e-9+F.softmax(emb.mm(emb.t()),dim=1,dtype=torch.float)))
