@@ -47,14 +47,6 @@ class KL(StaticGraphEmbedding):
 		self._num_nodes = AdjMat.shape[0]
 		self._num_edges = AdjMat.sum()
 
-		# Calculate degree matrix from adjacency matrix
-		#npadj=np.matrix(AdjMat)
-		#s=(len(npadj),len(npadj))
-		#degree = np.zeros(s) #init degree matrix
-		#rowsum = npadj.sum(axis=1) #get degree of each row (-> node)
-		#for j in range(0, len(npadj)):
-		#    degree[j,j] = rowsum[j,0]
-
 		# Convert adjacency matrix to a CUDA Tensor
 		adjmat_cuda = torch.FloatTensor(AdjMat.toarray()).cuda()
 		
@@ -80,18 +72,6 @@ class KL(StaticGraphEmbedding):
 		b = nn.Parameter(torch.Tensor([bias_init]))
 
 		## Define different loss functions
-		
-		# sigmoid loss function
-		#def compute_loss_sigmoid(adjmat_cuda, emb, b=0.0): 
-		#    """Compute the negative log-likelihood of the KL model."""
-		#    logits = emb @ emb.t() + b
-		#    logits = logits.cuda()
-		#    loss = F.binary_cross_entropy_with_logits(logits, adjmat_cuda, reduction='none')
-			# Since we consider graphs without self-loops, we don't want to compute loss
-			# for the diagonal entries of the adjacency matrix.
-			# This will kill the gradients on the diagonal.
-		#    loss[np.diag_indices(adjmat_cuda.shape[0])] = 0.0
-		#    return loss.mean()
 
 		def compute_loss_kl(adjmat_cuda, emb, degree):
 			#KL(P||softmax(Z^TZ))=sum_i(P_i log (P_i / softmax(Z^TZ)_i))
@@ -101,16 +81,10 @@ class KL(StaticGraphEmbedding):
 			P = inv_degree.mm(adjmat_cuda)
 			loss = -(P*torch.log(10e-9+F.softmax(emb.mm(emb.t()),dim=1,dtype=torch.float)))
 			return loss.mean()
-			
-		# other loss function
 
 		
 		# Choose loss function
-		#if self._distance_measure == 'kl':
 		compute_loss = compute_loss_kl
-		# if self._distance_measure == 'sigmoid':
-		# 	compute_loss = compute_loss_sigmoid
-		#elif self._distance_meassure == 'sigmoid':
 		
 		
 		#### Model definition end ####
