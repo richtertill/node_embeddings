@@ -97,8 +97,7 @@ def save_experiment_summary(result_folder,exp, datasets, embedding_methods):
 		file.write("\n")
 		file.write("Embedding methods used:\n")
 		for em in embedding_methods:
-			for key,value in em.items():
-				file.write(f'- {key}: {value}\n')
+			file.write(f'{em.get_method_summary()}\n')
 		file.write("\n")
 		file.write("Experiment Parameters:\n")
 		for key, value in exp.items():
