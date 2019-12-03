@@ -11,7 +11,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
 
-def evaluateStaticLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
+def evaluateLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
 
 	# split edges of graph into set of train and test edges
 	# val_ones and val_zeros is always empty
@@ -111,7 +111,7 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
 			embedding_method.set_summary_folder(summary_folder_extended_round)
 			embedding_method.reset_epoch()
-			auc_scores[round_id] = evaluateStaticLinkPrediction(AdjMat, embedding_method,
+			auc_scores[round_id] = evaluateLinkPrediction(AdjMat, embedding_method,
 											train_ratio,train_epochs, eval_epochs, edge_emb_method,
 											undirected=undirected)
 
