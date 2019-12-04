@@ -18,7 +18,7 @@ from utils import graph_util
 class Bernoulli(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, distance_meassure='sigmoid',
-                learning_rate=1e-2,weight_decay=1e-7,display_step=250):
+                 learning_rate=1e-2, weight_decay=1e-7, display_step=250):
         ''' Initialize the Bernoulli class
 
         Args:
@@ -35,14 +35,10 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_end = 0
         self._setup_done = False
 
-
     def setup_model_parameters(self, AdjMat):
         # input
         self._num_nodes = AdjMat.shape[0]
         self._num_edges = AdjMat.sum()
-
-        # Convert adjacency matrix to a CUDA Tensor
-        self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
 
         # Model parameters
         self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
@@ -57,9 +53,8 @@ class Bernoulli(StaticGraphEmbedding):
             {'params': [self._emb], 'weight_decay': self._weight_decay},
             {'params': [self._b]}],
             lr=self._learning_rate)
-        
-        self._setup_done = True
 
+        self._setup_done = True
 
     def get_method_name(self):
         return self._method_name
@@ -90,6 +85,8 @@ class Bernoulli(StaticGraphEmbedding):
 
         # sigmoid loss function
         def compute_loss_ber_sig(adj, emb, b=0.1):
+            # Convert adjacency matrix to a CUDA Tensor
+            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
             """Compute the NLL of Bernoulli using a Sigmoid Kernel"""
             N, d = emb.shape
 
@@ -109,6 +106,8 @@ class Bernoulli(StaticGraphEmbedding):
             return loss
 
         def compute_loss_ber_exp1(adj, emb, b=0.0):
+            # Convert adjacency matrix to a CUDA Tensor
+            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
             """Compute the rdf distance of the Bernoulli model."""
             """Currently very slow, as fast way has a bug"""
             # Initialization
@@ -125,8 +124,17 @@ class Bernoulli(StaticGraphEmbedding):
             loss[np.diag_indices(adj.shape[0])] = 0.0
             return loss.mean()
 
+        def compute_loss_ber_dist(Z, eps=1e-5):
+            pdist = ((Z[:, None] - Z[None, :]).pow(2.0).sum(-1) + eps).sqrt()
+            neg_term = torch.log(-torch.expm1(-pdist) + 1e-5)
+            neg_term[np.diag_indices(N)] = 0.0
+            pos_term = -pdist[e1, e2]
+            neg_term[e1, e2] = 0.0
+            return -(pos_term.sum() + neg_term.sum()) / Z.shape[0] ** 2
 
         def compute_loss_ber_exp2(adj, emb):
+            # Convert adjacency matrix to a CUDA Tensor
+            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
             """Compute the NLL of Bernoulli using an Exponential Kernel"""
             N, d = emb.shape
 
@@ -151,6 +159,8 @@ class Bernoulli(StaticGraphEmbedding):
             compute_loss = compute_loss_ber_exp1
         elif self._distance_meassure == 'exponential':
             compute_loss = compute_loss_ber_exp2
+        elif self._distance_meassure == 'dist':
+            compute_loss == compute_loss_ber_dist
 
         #### Learning ####
 
@@ -175,8 +185,3 @@ class Bernoulli(StaticGraphEmbedding):
         #         np.savetxt('embedding_' + self._savefilesuffix + '.txt', emb_np)
 
         return emb_np
-
-#     def get_embedding(self, filesuffix=None):
-#         return self._Y if filesuffix is None else np.loadtxt(
-#             'embedding_' + filesuffix + '.txt'
-#         )
