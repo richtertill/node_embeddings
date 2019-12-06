@@ -46,6 +46,8 @@ class Bernoulli(StaticGraphEmbedding):
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
+        e1,e2 = AdjMat.nonzero()
+        
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
         # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
@@ -84,83 +86,42 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_end += num_epoch
 
         # sigmoid loss function
-        def compute_loss_ber_sig(adj, emb, b=0.1):
-            # Convert adjacency matrix to a CUDA Tensor
-            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
-            """Compute the NLL of Bernoulli using a Sigmoid Kernel"""
-            N, d = emb.shape
+        def compute_loss_ber_sig(emb, b=0.1, eps=1e-5):
+            dist = torch.matmul(emb,emb.T) +b
+            sigdist = 1/(1+torch.exp(dist+eps)+eps)
+            logsigdist = torch.log(sigdist+eps)
+            pos_term = logsigdist[e1,e2]
+            neg_term = torch.log(1-sigdist)
+            neg_term[np.diag_indices(N)] = 0.0
 
-            # compute f(z_i, z_j) = sigma(z_i^Tz_j+b)
-            dot = torch.matmul(emb, emb.T)
-            logits = dot + b
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 
-            # transform adj
-            ind = torch.triu_indices(N, N, offset=1)
-            logits = logits[ind[0], ind[1]].to('cuda:0')
-            labels = adj[ind[0], ind[1]]
-
-            # compute p(A|Z)
-            loss = F.binary_cross_entropy_with_logits(logits, labels, weight=None, size_average=None, reduce=None,
-                                                      reduction='mean')
-
-            return loss
-
-        def compute_loss_ber_exp1(adj, emb, b=0.0):
-            # Convert adjacency matrix to a CUDA Tensor
-            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
-            """Compute the rdf distance of the Bernoulli model."""
-            """Currently very slow, as fast way has a bug"""
-            # Initialization
-            N, d = emb.shape
-            squared_euclidian = torch.zeros(N, N).cuda()
-            gamma = 0.1
-            # Compute squared euclidian
-            for index, embedding in enumerate(emb):
-                sub = embedding - emb + 10e-9
-                squared_euclidian[index, :] = torch.sum(torch.pow(sub, 2), 1)
-            # Compute exponentianl
-            radial_exp = torch.exp(-gamma * torch.sqrt(squared_euclidian))
-            loss = F.binary_cross_entropy(radial_exp, adj, reduction='none')
-            loss[np.diag_indices(adj.shape[0])] = 0.0
-            return loss.mean()
-
-        def compute_loss_ber_dist(Z, eps=1e-5):
-            pdist = ((Z[:, None] - Z[None, :]).pow(2.0).sum(-1) + eps).sqrt()
+        def compute_loss_ber_dist(emb, eps=1e-5):
+            pdist = ((emb[:, None] - Z[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             neg_term = torch.log(-torch.expm1(-pdist) + 1e-5)
             neg_term[np.diag_indices(N)] = 0.0
             pos_term = -pdist[e1, e2]
             neg_term[e1, e2] = 0.0
-            return -(pos_term.sum() + neg_term.sum()) / Z.shape[0] ** 2
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0] ** 2
 
-        def compute_loss_ber_exp2(adj, emb):
-            # Convert adjacency matrix to a CUDA Tensor
-            self._adj = torch.FloatTensor(AdjMat.toarray()).cuda()
-            """Compute the NLL of Bernoulli using an Exponential Kernel"""
-            N, d = emb.shape
+        def compute_loss_ber_exp(emb, eps=1e-5):
+            emb_abs = torch.FloatTensor.abs(Z)
+            dist = -torch.matmul(emb_abs,emb_abs.T)
+            neg_term=dist
+            neg_term[np.diag_indices(N)]=0.0
+            expdist=torch.exp(dist)
+            logdist=torch.log(1-expdist+eps)
+            pos_term = logdist[e1,e2]
 
-            # get indices of upper triangular matrix
-            ind = torch.triu_indices(N, N, offset=1)
-
-            # compute f(z_i, z_j) = sigma(z_i^Tz_j+b)
-            dot = torch.matmul(emb, emb.T)
-            logits = 1 - torch.exp(-dot)
-            logits = logits[ind[0], ind[1]]
-            labels = adj[ind[0], ind[1]]
-
-            # compute loss
-            loss = F.binary_cross_entropy_with_logits(logits, labels, reduction='mean')
-
-            return loss
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 
         # Choose loss function
         if self._distance_meassure == 'sigmoid':
             compute_loss = compute_loss_ber_sig
         elif self._distance_meassure == 'distance':
-            compute_loss = compute_loss_ber_exp1
+            compute_loss = compute_loss_ber_dist
         elif self._distance_meassure == 'exponential':
-            compute_loss = compute_loss_ber_exp2
-        elif self._distance_meassure == 'dist':
-            compute_loss == compute_loss_ber_dist
+            compute_loss = compute_loss_ber_exp
 
         #### Learning ####
 
