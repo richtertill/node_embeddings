@@ -46,7 +46,7 @@ class Bernoulli(StaticGraphEmbedding):
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
-        e1,e2 = AdjMat.nonzero()
+        self._e1,self._e2 = AdjMat.nonzero()
         
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
@@ -90,7 +90,7 @@ class Bernoulli(StaticGraphEmbedding):
             dist = torch.matmul(emb,emb.T) +b
             sigdist = 1/(1+torch.exp(dist+eps)+eps)
             logsigdist = torch.log(sigdist+eps)
-            pos_term = logsigdist[e1,e2]
+            pos_term = logsigdist[self._e1,self._e2]
             neg_term = torch.log(1-sigdist)
             neg_term[np.diag_indices(N)] = 0.0
 
@@ -100,8 +100,8 @@ class Bernoulli(StaticGraphEmbedding):
             pdist = ((emb[:, None] - Z[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             neg_term = torch.log(-torch.expm1(-pdist) + 1e-5)
             neg_term[np.diag_indices(N)] = 0.0
-            pos_term = -pdist[e1, e2]
-            neg_term[e1, e2] = 0.0
+            pos_term = -pdist[self._e1, self._e2]
+            neg_term[self._e1, self._e2] = 0.0
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0] ** 2
 
         def compute_loss_ber_exp(emb, eps=1e-5):
@@ -111,7 +111,7 @@ class Bernoulli(StaticGraphEmbedding):
             neg_term[np.diag_indices(N)]=0.0
             expdist=torch.exp(dist)
             logdist=torch.log(1-expdist+eps)
-            pos_term = logdist[e1,e2]
+            pos_term = logdist[self._e1,self._e2]
 
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 

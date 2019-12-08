@@ -59,7 +59,7 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
 
     pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
     with open(result_folder + '/node_classification_summary.txt', 'a') as file:
-        file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: ')
+        file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: \n')
 
         micros = [None] * rounds
         macros = [None] * rounds
@@ -73,8 +73,8 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
                     AdjMat,Y, embedding_method, train_ratio, train_epochs, eval_epochs)
 
 
-        mean_f1_micro_score = np.mean(np.array(micro))
-        mean_f1_macro_score = np.mean(np.array(macro))
+        mean_f1_micro_score = np.mean(np.array(micros))
+        mean_f1_macro_score = np.mean(np.array(macros))
 
         file.write(f'F1-micro: {mean_f1_micro_score}\n' )
         file.write(f'F1-macro: {mean_f1_macro_score}\n' )

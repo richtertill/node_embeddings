@@ -10,7 +10,7 @@
 import gust  # library for loading graph data
 
 def load_dataset(name='cora'):
-    A, X, _, y = gust.load_dataset('cora').standardize().unpack()
+    A, X, _, y = gust.load_dataset(name).standardize().unpack()
     # A - adjacency matrix 
     # X - attribute matrix - not needed
     # y - node labels
