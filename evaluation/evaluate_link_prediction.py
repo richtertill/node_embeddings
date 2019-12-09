@@ -34,7 +34,7 @@ def evaluateLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, ev
 	A_train_nodes = gust.edges_to_sparse(train_ones,AdjMat.shape[0])
 
 	writer = embedding_method.get_summary_writer()
-	embedding_method.setup_model_parameters(A_train_nodes)
+	embedding_method.setup_model_input(A_train_nodes)
 
 	for i in range(1,int(train_epochs/eval_epochs)):
 
