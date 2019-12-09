@@ -35,7 +35,7 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_end = 0
         self._setup_done = False
 
-    def setup_model_parameters(self, AdjMat):
+    def setup_model_input(self, AdjMat):
         # input
         self._num_nodes = AdjMat.shape[0]
         self._num_edges = AdjMat.sum()
@@ -62,7 +62,7 @@ class Bernoulli(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return '%s_%d' % (self._method_name, self._embedding_dim)
+        return f'{self._method_name}_{self._embedding_dim}'
 
     def reset_epoch(self):
         self._epoch_begin = 0

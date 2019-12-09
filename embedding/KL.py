@@ -16,7 +16,7 @@ from utils import graph_util
 
 class KL(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64,learning_rate=1e-2,weight_decay=1e-7,display_step=250):
+    def __init__(self, embedding_dimension=64, score_type="basic", learning_rate=1e-2,weight_decay=1e-7,display_step=250):
         ''' Initialize the kl class
 
         Args:
@@ -25,6 +25,7 @@ class KL(StaticGraphEmbedding):
         '''
         self._embedding_dim = embedding_dimension
         self._method_name = "KL"
+        self._score_type = score_type
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
         self._display_step = display_step
@@ -36,13 +37,12 @@ class KL(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return '%s_%d' % (self._method_name, self._embedding_dim)
+        return f'{self._method_name}_{self._embedding_dim}_{self._score_type}'
 
-    def set_summary_folder(self, path):
-        self._summary_path = path
-        self._writer = SummaryWriter(self._summary_path)
+    def set_summary_writer(self, path):
+        self._writer = SummaryWriter(path)
 
-    def setup_model_parameters(self,AdjMat):
+    def setup_model_input(self,AdjMat):
         self._num_nodes = AdjMat.shape[0]
         self._num_edges = AdjMat.sum()
 
@@ -62,6 +62,7 @@ class KL(StaticGraphEmbedding):
         # (i.e. z_i^T z_j = 0), then their connection probability is sigmoid(b) equals to the 
         # background edge probability in the graph. This significantly speeds up training
         # TODO: WHY does it speed up the training?
+
         self._edge_proba = self._num_edges / (self._num_nodes**2 - self._num_nodes)
         self._bias_init = np.log(edge_proba / (1 - edge_proba))
         self._b = nn.Parameter(torch.Tensor([bias_init]))
@@ -107,7 +108,7 @@ class KL(StaticGraphEmbedding):
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
-            if epoch % self._display_step == 0 and self._summary_path:
+            if epoch % self._display_step == 0 and self._writer:
                 # print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
 

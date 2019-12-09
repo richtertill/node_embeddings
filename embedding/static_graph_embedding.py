@@ -19,6 +19,22 @@ class StaticGraphEmbedding:
 		'''		
 		return ''
 
+	def set_summary_writer(self, path):
+		''' Creates a Tensorboard SummaryWriter instances
+		
+		Args:
+			path: path to folder where experiment results are stored
+		'''
+		pass
+
+	def get_summary_writer(self):
+		''' Returns the Tensorboard SummaryWriter instance
+
+		Return: 
+			Instance of Tensorboard SummaryWriter which already points to the model summary folder
+		'''	
+		pass
+
 	def get_method_summary(self):
 		''' Returns the summary for the embedding include method name and paramater setting
 
@@ -35,6 +51,9 @@ class StaticGraphEmbedding:
 		'''
 		pass
 
+	def setup_model_input(self, adj_mat):
+		pass
+
 	def get_embedding(self):
 		''' Returns the learnt embedding
 
@@ -48,24 +67,5 @@ class StaticGraphEmbedding:
 
 		Return: 
 			A number representing the size of the embedding vector
-		'''
-		pass
-
-	def get_edge_weight(self, i, j):
-		'''Compute the weight for edge between node i and node j
-
-		Args:
-			i, j: two node id in the graph for embedding
-		Returns:
-			A single number represent the weight of edge between node i and node j
-
-		'''
-		pass
-
-	def get_reconstructed_adj(self):
-		'''Compute the adjacency matrix from the learned embedding
-
-		Returns:
-		    A numpy array of size #nodes * #nodes containing the reconstructed adjacency matrix.
 		'''
 		pass

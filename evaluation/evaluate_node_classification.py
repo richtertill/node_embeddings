@@ -29,7 +29,7 @@ from sklearn.model_selection import train_test_split
 def evaluateNodeClassification(AdjMat,Y, embedding_method, train_ratio, train_epochs, eval_epochs, undirected=True):
     
     writer = embedding_method.get_summary_writer()
-    embedding_method.setup_model_parameters(AdjMat)
+    embedding_method.setup_model_input(AdjMat)
 
     adjmat_cpu = AdjMat
     y_cpu = Y
