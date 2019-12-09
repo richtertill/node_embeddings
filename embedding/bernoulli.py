@@ -42,11 +42,11 @@ class Bernoulli(StaticGraphEmbedding):
 
         # Model parameters
         self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
+        self._X = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
-        self._e1,self._e2 = AdjMat.nonzero()
         
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
@@ -58,6 +58,12 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._setup_done = True
 
+    def get_similarity_measure(self):
+        '''
+        return given similarity measure here and particularly e1 and e2, we need to find an elegang way for this
+        '''
+        return self._similarity_measure
+        
     def get_method_name(self):
         return self._method_name
 
@@ -86,7 +92,19 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_end += num_epoch
 
         # sigmoid loss function
-        def compute_loss_ber_sig(emb, b=0.1, eps=1e-5):
+        def compute_loss_ber_sig(emb, b=0.1, eps=1e-5, similarity_measure):
+            e1, e2 = similarity_measure.nonzero()
+            dist = torch.matmul(emb,emb.T) +b
+            sigdist = 1/(1+torch.exp(dist+eps)+eps)
+            logsigdist = torch.log(sigdist+eps)
+            pos_term = logsigdist[self._e1,self._e2]
+            neg_term = torch.log(1-sigdist)
+            neg_term[np.diag_indices(N)] = 0.0
+
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+        
+        def compute_loss_ber_sig_x(emb, b=0.1, eps=1e-5, similarity_measure, X):
+            e1, e2 = similarity_measure.nonzero()
             dist = torch.matmul(emb,emb.T) +b
             sigdist = 1/(1+torch.exp(dist+eps)+eps)
             logsigdist = torch.log(sigdist+eps)
@@ -96,15 +114,30 @@ class Bernoulli(StaticGraphEmbedding):
 
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 
-        def compute_loss_ber_dist(emb, eps=1e-5):
+        def compute_loss_ber_dist(emb, eps=1e-5, similarity_measure):
+            e1, e2 = similarity_measure.nonzero()
             pdist = ((emb[:, None] - Z[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             neg_term = torch.log(-torch.expm1(-pdist) + 1e-5)
             neg_term[np.diag_indices(N)] = 0.0
             pos_term = -pdist[self._e1, self._e2]
             neg_term[self._e1, self._e2] = 0.0
+            
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0] ** 2
 
-        def compute_loss_ber_exp(emb, eps=1e-5):
+        def compute_loss_ber_exp(emb, eps=1e-5, similarity_measure):
+            e1, e2 = similarity_measure.nonzero()
+            emb_abs = torch.FloatTensor.abs(Z)
+            dist = -torch.matmul(emb_abs,emb_abs.T)
+            neg_term=dist
+            neg_term[np.diag_indices(N)]=0.0
+            expdist=torch.exp(dist)
+            logdist=torch.log(1-expdist+eps)
+            pos_term = logdist[self._e1,self._e2]
+
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+        
+        def compute_loss_ber_exp_x(emb, eps=1e-5, similarity_measure, X):
+            e1, e2 = similarity_measure.nonzero()
             emb_abs = torch.FloatTensor.abs(Z)
             dist = -torch.matmul(emb_abs,emb_abs.T)
             neg_term=dist
@@ -117,11 +150,17 @@ class Bernoulli(StaticGraphEmbedding):
 
         # Choose loss function
         if self._distance_meassure == 'sigmoid':
-            compute_loss = compute_loss_ber_sig
+            if self.X == True:
+                compute_loss = compute_loss_ber_sig_x
+            else:
+                compute_loss = compute_loss_ber_sig
         elif self._distance_meassure == 'distance':
             compute_loss = compute_loss_ber_dist
         elif self._distance_meassure == 'exponential':
-            compute_loss = compute_loss_ber_exp
+            if self.X == True:
+                compute_loss = compute_loss_ber_exp_x
+            else:
+                compute_loss = compute_loss_ber_exp
 
         #### Learning ####
 
