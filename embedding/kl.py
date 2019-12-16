@@ -91,9 +91,9 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
-        # get bernoulli loss function
-        def bernoulli(pos_term, neg_term, size):
-            return -(pos_term.size() + neg_term.size()) / size**2
+        
+        def kl(similarity_measure, embedding):
+            return -(torch.matmul(similarity_measure, torch.log(embedding))).sum()
         
         #### Learning ####
 
@@ -113,8 +113,5 @@ class Bernoulli(StaticGraphEmbedding):
 
         # set epoch_begin to last epoch of training to ensure that loggin on tensorflow works correctly
         self._epoch_begin = self._epoch_end
-
-        # Save the embedding
-        #         np.savetxt('embedding_' + self._savefilesuffix + '.txt', emb_np)
 
         return emb_np
