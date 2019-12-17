@@ -126,7 +126,7 @@ class Bernoulli(StaticGraphEmbedding):
 
         def compute_loss_ber_exp(emb, eps=1e-5, similarity_measure):
             e1, e2 = similarity_measure.nonzero()
-            emb_abs = torch.FloatTensor.abs(Z)
+            emb_abs = torch.FloatTensor.abs(emb)
             dist = -torch.matmul(emb_abs,emb_abs.T)
             neg_term=dist
             neg_term[np.diag_indices(N)]=0.0
@@ -138,7 +138,7 @@ class Bernoulli(StaticGraphEmbedding):
         
         def compute_loss_ber_exp_x(emb, eps=1e-5, similarity_measure, X):
             e1, e2 = similarity_measure.nonzero()
-            emb_abs = torch.FloatTensor.abs(Z)
+            emb_abs = torch.FloatTensor.abs(emb)
             dist = -torch.matmul(emb_abs,emb_abs.T)
             neg_term=dist
             neg_term[np.diag_indices(N)]=0.0

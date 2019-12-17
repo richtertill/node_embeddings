@@ -93,7 +93,7 @@ class Bernoulli(StaticGraphEmbedding):
 
         # get bernoulli loss function
         def bernoulli(pos_term, neg_term, size):
-            return -(pos_term.size() + neg_term.size()) / size**2
+            return -(pos_term.sum() + neg_term.sum()) / size**2
         
         #### Learning ####
 
