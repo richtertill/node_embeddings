@@ -13,20 +13,21 @@ sys.path.append(os.path.realpath(__file__))
 
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
+from .decoder import sigmoid, distance, exponential
 
 
 class Bernoulli(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, distance_meassure='sigmoid',
+    def __init__(self, embedding_dimension=64, decoder='sigmoid',
                  learning_rate=1e-2, weight_decay=1e-7, display_step=250):
         ''' Initialize the Bernoulli class
 
         Args:
             d: dimension of the embedding
-            distance_meassure: name of distance meassure ('sigmoid','gaussian',...)
+            decoder: name of decoder ('sigmoid','gaussian',...)
         '''
         self._embedding_dim = embedding_dimension
-        self._distance_meassure = distance_meassure
+        self._decoder = decoder
         self._method_name = "Bernoulli"
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
@@ -91,8 +92,10 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
+
+
         # get bernoulli loss function
-        def bernoulli(pos_term, neg_term, size):
+        def compute_loss(pos_term, neg_term, size):
             return -(pos_term.sum() + neg_term.sum()) / size**2
         
         #### Learning ####
