@@ -111,7 +111,7 @@ class Bernoulli(StaticGraphEmbedding):
             sigdist = 1/(1+torch.exp(dist+eps)+eps)
             logsigdist = torch.log(sigdist+eps)
             pos_term = logsigdist[self._e1,self._e2]
-            neg_term = torch.log(1-sigdist)
+            neg_term = torch.log(1-sigdist+eps)
             neg_term[np.diag_indices(emb.shape[0])] = 0.0
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 
@@ -120,7 +120,7 @@ class Bernoulli(StaticGraphEmbedding):
             gamma = 0.1
             pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             embedding = torch.expm1(-pdist*gamma) + eps # gamma = 0.1
-            neg_term = torch.log(embedding)
+            neg_term = torch.log(embedding+eps)
             neg_term[np.diag_indices(emb.shape[0])] = 0.0
             pos_term = -pdist[self._e1, self._e2]
             neg_term[self._e1, self._e2] = 0.0
