@@ -13,13 +13,6 @@ from time import time
 
 from .similarity_measure import adjacency, laplacian, dw
 
-if(self._similarity_measure == 'adjacency'):
-    similarity_measure = adjacency(self._adj)
-elif (self._similarity_measure == 'laplacian'):
-    similarity_measure = laplacian(self._adj)
-elif (self._similarity_measure == 'dw'):
-    similarity_measure = dw(self._adj)
-
 def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
     # embedding = sig(ZZ^T+b)
     e1, e2 = similarity_measure.nonzero()
@@ -30,7 +23,7 @@ def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
     neg_term = torch.log(1-embedding)
     neg_term[np.diag_indices(emb.shape[0])] = 0.0
     size=emb.shape[0]
-    return pos_term, neg_term, size, similarity_measure, embedding
+    return pos_term, neg_term, size, embedding
 
 def sigmoidx(emb, X,similarity_measure, b=0.1, eps=1e-5):
     # embedding = sig(ZXZ^T+b)
@@ -42,7 +35,7 @@ def sigmoidx(emb, X,similarity_measure, b=0.1, eps=1e-5):
     neg_term = torch.log(1-embedding)
     neg_term[np.diag_indices(emb.shape[0])] = 0.0
     size=emb.shape[0]
-    return pos_term, neg_term, size, embedding, similarity_measure, embedding
+    return pos_term, neg_term, size, embedding, embedding
 
 def gaussian(emb, similarity_measure, eps=1e-5,):
     # embedding = exp(-gamma||z_i-z_j||^2)
@@ -55,7 +48,7 @@ def gaussian(emb, similarity_measure, eps=1e-5,):
     pos_term = -pdist[e1, e2]
     neg_term[e1, e2] = 0.0
     size=emb.shape[0]
-    return pos_term, neg_term, size, similarity_measure, embedding
+    return pos_term, neg_term, size, embedding
 
 def exponential(emb, similarity_measure, eps=1e-5):
     # embedding = 1 - exp(-ZZ^T)
@@ -69,7 +62,7 @@ def exponential(emb, similarity_measure, eps=1e-5):
     logdist = torch.log(embedding + eps)
     pos_term = logdist[e1, e2]
     size=emb.shape[0]
-    return pos_term, neg_term, size, similarity_measure, embedding
+    return pos_term, neg_term, size, embedding
 
 def exponentialx(emb, similarity_measure, X, eps=1e-5):
     # embedding = 1 - exp(-ZXZ^T)
@@ -84,4 +77,4 @@ def exponentialx(emb, similarity_measure, X, eps=1e-5):
     logdist = torch.log(embedding + eps)
     pos_term = logdist[e1, e2]
     size=emb.shape[0]
-    return pos_term, neg_term, size, similarity_measure, embedding
+    return pos_term, neg_term, size, embedding

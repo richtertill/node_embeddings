@@ -50,6 +50,13 @@ class KL(StaticGraphEmbedding):
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
+
+        if (self._matrix_type=="adjacency"):
+            self._Mat = adjacency(AdjMat)
+        if (self._matrix_type=="laplacian"):
+            self._Mat = laplacian(AdjMat)
+        if (self._matrix_type=="dw"):
+            self._Mat = dw(AdjMat)
         
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
@@ -95,11 +102,11 @@ class KL(StaticGraphEmbedding):
         self._epoch_end += num_epoch
         
         if(self._decoder == 'sigmoid'):
-            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj)
+            pos_term, neg_term, size, embedding = sigmoid(self._emb,self._Mat)
         elif (self._decoder == 'gaussian'):
-            pos_term, neg_term, size, similarity_measure, embedding = gaussian(self._emb,self._adj)
+            pos_term, neg_term, size, embedding = gaussian(self._emb,self._Mat)
         elif (self._decoder == 'exponential'):
-            pos_term, neg_term, size, similarity_measure, embedding = exponential(self._emb,self._adj)
+            pos_term, neg_term, size, embedding = exponential(self._emb,self._Mat)
         
         #get kl divergence
         def compute_loss(similarity_measure, embedding):
@@ -110,7 +117,7 @@ class KL(StaticGraphEmbedding):
         # Training loop
         for epoch in range(self._epoch_begin, self._epoch_end):
             self._opt.zero_grad()
-            loss = compute_loss(self._adj, self._emb)
+            loss = compute_loss(self._Mat, embedding)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
