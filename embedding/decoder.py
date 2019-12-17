@@ -18,7 +18,7 @@ def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
     e1, e2 = similarity_measure.nonzero()
     dist = torch.matmul(emb,emb.T) +b
     embedding = 1/(1+torch.exp(dist+eps)+eps)
-    logsigdist = torch.log(sigdist+eps)
+    logsigdist = torch.log(embedding+eps)
     pos_term = logsigdist[e1,e2]
     neg_term = torch.log(1-embedding)
     neg_term[np.diag_indices(emb.shape[0])] = 0.0

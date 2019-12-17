@@ -94,11 +94,11 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_end += num_epoch
 
         if(self._decoder == 'sigmoid'):
-            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj)
+            pos_term, neg_term, size,embedding = sigmoid(self._emb,self._adj)
         elif (self._decoder == 'gaussian'):
-            pos_term, neg_term, size, similarity_measure, embedding = gaussian(self._emb,self._adj)
+            pos_term, neg_term, size, embedding = gaussian(self._emb,self._adj)
         elif (self._decoder == 'exponential'):
-            pos_term, neg_term, size, similarity_measure, embedding = exponential(self._emb,self._adj)
+            pos_term, neg_term, size, embedding = exponential(self._emb,self._adj)
 
         # get bernoulli loss function
         def compute_loss(pos_term, neg_term, size):
