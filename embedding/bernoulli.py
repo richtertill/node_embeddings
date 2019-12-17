@@ -92,6 +92,12 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
+        if(self._decoder == 'sigmoid')
+            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj):
+        elif (self._decoder == 'distance')
+            pos_term, neg_term, size, similarity_measure, embedding = distance(emb, similarity_measure):
+        elif (self._decoder == 'exponential')
+            pos_term, neg_term, size, similarity_measure, embedding = exponential(emb, similarity_measure)
 
 
         # get bernoulli loss function
