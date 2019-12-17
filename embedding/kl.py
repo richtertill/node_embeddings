@@ -20,7 +20,7 @@ from .decoder import sigmoid, gaussian, exponential
 
 class KL(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, distance_meassure='sigmoid',
+    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
                  learning_rate=1e-2, weight_decay=1e-7, display_step=250):
         ''' Initialize the Bernoulli class
 
@@ -29,9 +29,10 @@ class KL(StaticGraphEmbedding):
             distance_meassure: name of distance meassure ('sigmoid','gaussian',...)
         '''
         self._embedding_dim = embedding_dimension
-        self._distance_meassure = distance_meassure
+        self._decoder = decoder
         self._method_name = "KL"
         self._learning_rate = learning_rate
+        self._similarity_measure = similarity_measure
         self._weight_decay = weight_decay
         self._display_step = display_step
         self._epoch_begin = 0
@@ -51,11 +52,11 @@ class KL(StaticGraphEmbedding):
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
 
-        if (self._matrix_type=="adjacency"):
+        if (self._similarity_measure=="adjacency"):
             self._Mat = adjacency(AdjMat)
-        if (self._matrix_type=="laplacian"):
+        if (self._similarity_measure=="laplacian"):
             self._Mat = laplacian(AdjMat)
-        if (self._matrix_type=="dw"):
+        if (self._similarity_measure=="dw"):
             self._Mat = dw(AdjMat)
         
         ### Optimizer definition ###

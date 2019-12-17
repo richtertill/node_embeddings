@@ -18,13 +18,13 @@ from gust import preprocessing as GustPreprosessing
 
 class MatrixFactorization(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, matrix_type="adjacency"):
+    def __init__(self, embedding_dimension=64, similarity_measure="adjacency"):
         '''
         Parameters
         ----------
         embedding_dimension
             Number of elements in the embedding vector representing a node.
-        matrix_type
+        sim_similarity_measure
             One of {'adjacency','unnormalized_lapla', 'random_walk_lapla', 'symmetrized_lapla'}, default 'adjacency'.
             Type of the Laplacian to compute.
 
@@ -39,22 +39,22 @@ class MatrixFactorization(StaticGraphEmbedding):
             Laplacian matrix in the same format as A.
         '''
         self._embedding_dim = embedding_dimension
-        self._matrix_type = matrix_type
+        self._similarity_measure = similarity_measure
         self._method_name = "Matrix_Fatorization"
         self._setup_done = False
 
-    def setup_model_input(self, adj_mat, matrix_type=None):
+    def setup_model_input(self, adj_mat, sim_similarity_measure=None):
 
-        if(matrix_type):
-            self._matrix_type = matrix_type
+        if(similarity_measure):
+            self._similarity_measure = similarity_measure
 
         # transform matrix to correct type
-        if (self._matrix_type=="adjacency"):
-            self._Mat = adjacency(A)
-        if (self._matrix_type=="laplacian"):
-            self._Mat = laplacian(A)
-        if (self._matrix_type=="dw"):
-            self._Mat = dw(A)
+        if (self._similarity_measure=="adjacency"):
+            self._Mat = adjacency(adj_mat)
+        if (self._similarity_measure=="laplacian"):
+            self._Mat = laplacian(adj_mat)
+        if (self._similarity_measure=="dw"):
+            self._Mat = dw(adj_mat)
                     
         self._setup_done = True
 
@@ -62,7 +62,7 @@ class MatrixFactorization(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}_{self._matrix_type}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._similarity_measure}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
