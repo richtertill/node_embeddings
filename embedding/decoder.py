@@ -11,6 +11,15 @@ import torch.nn.functional as F
 import torch.distributions as dist
 from time import time
 
+from .similarity_measure import adjacency, laplacian, dw
+
+if(self._similarity_measure == 'adjacency'):
+    similarity_measure = adjacency(self._adj)
+elif (self._similarity_measure == 'laplacian'):
+    similarity_measure = laplacian(self._adj)
+elif (self._similarity_measure == 'dw'):
+    similarity_measure = dw(self._adj)
+
 def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
     # embedding = sig(ZZ^T+b)
     e1, e2 = similarity_measure.nonzero()

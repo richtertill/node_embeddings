@@ -17,6 +17,7 @@ from utils import graph_util
 from .decoder import sigmoid, gaussian, exponential
 
 
+
 class KL(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, distance_meassure='sigmoid',
