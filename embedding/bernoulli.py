@@ -50,6 +50,14 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._adj = AdjMat
 
+        if(self._decoder == 'sigmoid'):
+            self._pos_term, self._neg_term, self._size, _ = sigmoid(self._emb,self._adj)
+        elif (self._decoder == 'gaussian'):
+            self._pos_term, self._neg_term, self._size, _ = gaussian(self._emb,self._adj)
+        elif (self._decoder == 'exponential'):
+            self._pos_term, self._neg_term, self._size, _ = exponential(self._emb,self._adj)
+
+
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
         # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
@@ -93,13 +101,6 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
-        if(self._decoder == 'sigmoid'):
-            pos_term, neg_term, size,embedding = sigmoid(self._emb,self._adj)
-        elif (self._decoder == 'gaussian'):
-            pos_term, neg_term, size, embedding = gaussian(self._emb,self._adj)
-        elif (self._decoder == 'exponential'):
-            pos_term, neg_term, size, embedding = exponential(self._emb,self._adj)
-
         # get bernoulli loss function
         def compute_loss(pos_term, neg_term, size):
             return -(pos_term.sum() + neg_term.sum()) / size**2
@@ -108,8 +109,8 @@ class Bernoulli(StaticGraphEmbedding):
         # Training loop
         for epoch in range(self._epoch_begin, self._epoch_end):
             self._opt.zero_grad()
-            loss = compute_loss(pos_term, neg_term, size)
-            loss.backward()
+            loss = compute_loss(self._pos_term, self._neg_term, self._size)
+            loss.backward(retain_graph=True)
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:

@@ -35,7 +35,7 @@ def sigmoidx(emb, X,similarity_measure, b=0.1, eps=1e-5):
     neg_term = torch.log(1-embedding)
     neg_term[np.diag_indices(emb.shape[0])] = 0.0
     size=emb.shape[0]
-    return pos_term, neg_term, size, embedding, embedding
+    return pos_term, neg_term, size, embedding
 
 def gaussian(emb, similarity_measure, eps=1e-5,):
     # embedding = exp(-gamma||z_i-z_j||^2)

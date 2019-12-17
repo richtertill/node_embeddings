@@ -119,7 +119,7 @@ class KL(StaticGraphEmbedding):
         for epoch in range(self._epoch_begin, self._epoch_end):
             self._opt.zero_grad()
             loss = compute_loss(self._Mat, embedding)
-            loss.backward()
+            loss.backward(retain_graph=True)
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:
