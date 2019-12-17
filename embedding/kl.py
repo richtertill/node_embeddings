@@ -17,7 +17,7 @@ from utils import graph_util
 from .decoder import sigmoid, gaussian, exponential
 
 
-class Bernoulli(StaticGraphEmbedding):
+class KL(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, distance_meassure='sigmoid',
                  learning_rate=1e-2, weight_decay=1e-7, display_step=250):
