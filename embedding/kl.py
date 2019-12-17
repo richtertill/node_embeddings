@@ -29,7 +29,7 @@ class KL(StaticGraphEmbedding):
         '''
         self._embedding_dim = embedding_dimension
         self._distance_meassure = distance_meassure
-        self._method_name = "Bernoulli"
+        self._method_name = "KL"
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
         self._display_step = display_step
