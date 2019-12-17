@@ -20,7 +20,7 @@ from .similarity_measure import adjacency, laplacian, dw
 class KL(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
-                 learning_rate=1e-2, weight_decay=1e-7, display_step=250):
+                 learning_rate=1e-2, weight_decay=1e-7, display_step=10):
         ''' Initialize the Bernoulli class
 
         Args:
@@ -44,7 +44,7 @@ class KL(StaticGraphEmbedding):
         self._num_edges = AdjMat.sum()
 
         # Model parameters
-        self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
+        self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 0.1))
         self._X = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
@@ -57,6 +57,8 @@ class KL(StaticGraphEmbedding):
             self._Mat = laplacian(AdjMat)
         if (self._similarity_measure=="dw"):
             self._Mat = dw(AdjMat)
+
+        self._Mat = self._Mat.cuda()
         
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
@@ -103,22 +105,30 @@ class KL(StaticGraphEmbedding):
         
         def compute_loss_sig(emb, b=0.1, eps=1e-5):
             dist = torch.matmul(emb,emb.T)+b
-            embedding = 1/(1+torch.exp(dist+eps)+eps)
+            embedding = 1/(1+torch.exp(dist+eps))
             embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
+
+            # degree= self._Mat.sum(axis=1)
+            # inv_degree=torch.diagflat(1/degree).cuda()
+            # P = inv_degree.mm(self._Mat) 
+            # loss = -(P*torch.log( 10e-9+ F.softmax(emb.mm(emb.t() ),dim=1,dtype=torch.float)))
+            # return loss.mean()
 
         def compute_loss_gaussian(emb, eps=1e-5):
             gamma = 0.1
             pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             embedding = torch.expm1(-pdist*gamma) + eps
-            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+            embedding = embedding.to(torch.device("cuda"))
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
 
         def compute_loss_exponential(emb, eps=1e-5):
             emb_abs = torch.FloatTensor.abs(emb)
             dist = -torch.matmul(emb_abs, emb_abs.T)
             expdist = torch.exp(dist)
             embedding = 1 - expdist
-            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+            embedding = embedding.to(torch.device("cuda"))
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
 
 
         if(self._decoder == "sigmoid"):
@@ -138,7 +148,7 @@ class KL(StaticGraphEmbedding):
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:
-                # print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+                print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
 
         # Put the embedding back on the CPU

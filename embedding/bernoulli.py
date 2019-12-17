@@ -42,7 +42,7 @@ class Bernoulli(StaticGraphEmbedding):
         self._num_edges = AdjMat.sum()
 
         # Model parameters
-        self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
+        self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 0.1))
         self._X = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
@@ -153,7 +153,7 @@ class Bernoulli(StaticGraphEmbedding):
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:
-                # print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+                print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
 
         # Put the embedding back on the CPU

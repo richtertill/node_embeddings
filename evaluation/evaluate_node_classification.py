@@ -71,7 +71,7 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
             embedding_method.reset_epoch()
             micros[round_id], macros[round_id] = evaluateNodeClassification(
                     AdjMat,Y, embedding_method, train_ratio, train_epochs, eval_epochs)
-
+        
 
         mean_f1_micro_score = np.mean(np.array(micros))
         mean_f1_macro_score = np.mean(np.array(macros))
