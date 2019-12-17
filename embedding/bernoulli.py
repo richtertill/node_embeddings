@@ -13,7 +13,7 @@ sys.path.append(os.path.realpath(__file__))
 
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
-from .decoder import sigmoid, distance, exponential
+from .decoder import sigmoid, gaussian, exponential
 
 
 class Bernoulli(StaticGraphEmbedding):
@@ -92,24 +92,22 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
-        if(self._decoder == 'sigmoid')
-            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj):
-        elif (self._decoder == 'distance')
-            pos_term, neg_term, size, similarity_measure, embedding = distance(emb, similarity_measure):
-        elif (self._decoder == 'exponential')
-            pos_term, neg_term, size, similarity_measure, embedding = exponential(emb, similarity_measure)
-
+        if(self._decoder == 'sigmoid'):
+            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj)
+        elif (self._decoder == 'gaussian'):
+            pos_term, neg_term, size, similarity_measure, embedding = gaussian(self._emb,self._adj)
+        elif (self._decoder == 'exponential'):
+            pos_term, neg_term, size, similarity_measure, embedding = exponential(self._emb,self._adj)
 
         # get bernoulli loss function
         def compute_loss(pos_term, neg_term, size):
             return -(pos_term.sum() + neg_term.sum()) / size**2
         
         #### Learning ####
-
         # Training loop
         for epoch in range(self._epoch_begin, self._epoch_end):
             self._opt.zero_grad()
-            loss = compute_loss(self._adj, self._emb)
+            loss = compute_loss(pos_term, neg_term, size)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs

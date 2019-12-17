@@ -35,7 +35,7 @@ def sigmoidx(emb, X,similarity_measure, b=0.1, eps=1e-5):
     size=emb.shape[0]
     return pos_term, neg_term, size, embedding, similarity_measure, embedding
 
-def distance(emb, similarity_measure, eps=1e-5,):
+def gaussian(emb, similarity_measure, eps=1e-5,):
     # embedding = exp(-gamma||z_i-z_j||^2)
     gamma = 0.1
     e1, e2 = similarity_measure.nonzero()
