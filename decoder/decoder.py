@@ -64,7 +64,7 @@ class decoder(AdjMat):
         if self._setup_done == False:
             raise ValueError('Model input parameters not defined.')
 
-        def sigmoid(emb, b=0.1, eps=1e-5, similarity_measure):
+        def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
             # embedding = sig(ZZ^T+b)
             e1, e2 = similarity_measure.nonzero()
             dist = torch.matmul(emb,emb.T) +b
@@ -76,7 +76,7 @@ class decoder(AdjMat):
             size=emb.shape[0]
             return pos_term, neg_term, size, similarity_measure, embedding
 
-        def sigmoidx(emb, X, b=0.1, eps=1e-5, similarity_measure):
+        def sigmoidx(emb, X,similarity_measure, b=0.1, eps=1e-5):
             # embedding = sig(ZXZ^T+b)
             e1, e2 = similarity_measure.nonzero()
             dist = torch.matmul(emb,torch.matmul(X,emb.T)) +b
@@ -88,7 +88,7 @@ class decoder(AdjMat):
             size=emb.shape[0]
             return pos_term, neg_term, size, embedding, similarity_measure, embedding
 
-        def distance(emb, eps=1e-5, similarity_measure):
+        def distance(emb, similarity_measure, eps=1e-5,):
             # embedding = exp(-gamma||z_i-z_j||^2)
             gamma = 0.1
             e1, e2 = similarity_measure.nonzero()
@@ -101,7 +101,7 @@ class decoder(AdjMat):
             size=emb.shape[0]
             return pos_term, neg_term, size, similarity_measure, embedding
 
-        def exponential(emb, eps=1e-5, similarity_measure):
+        def exponential(emb, similarity_measure, eps=1e-5):
             # embedding = 1 - exp(-ZZ^T)
             e1, e2 = similarity_measure.nonzero()
             emb_abs = torch.FloatTensor.abs(emb)
@@ -115,7 +115,7 @@ class decoder(AdjMat):
             size=emb.shape[0]
             return pos_term, neg_term, size, similarity_measure, embedding
 
-        def exponentialx(emb, eps=1e-5, similarity_measure, X):
+        def exponentialx(emb, similarity_measure, X, eps=1e-5):
             # embedding = 1 - exp(-ZXZ^T)
             e1, e2 = similarity_measure.nonzero()
             emb_abs = torch.FloatTensor.abs(emb)
