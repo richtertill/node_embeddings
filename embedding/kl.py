@@ -14,6 +14,8 @@ sys.path.append(os.path.realpath(__file__))
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
+from .decoder import sigmoid, gaussian, exponential
+
 
 class Bernoulli(StaticGraphEmbedding):
 
@@ -90,9 +92,16 @@ class Bernoulli(StaticGraphEmbedding):
             raise ValueError('Model input parameters not defined.')
 
         self._epoch_end += num_epoch
-
         
-        def kl(similarity_measure, embedding):
+        if(self._decoder == 'sigmoid'):
+            pos_term, neg_term, size, similarity_measure, embedding = sigmoid(self._emb,self._adj)
+        elif (self._decoder == 'gaussian'):
+            pos_term, neg_term, size, similarity_measure, embedding = gaussian(self._emb,self._adj)
+        elif (self._decoder == 'exponential'):
+            pos_term, neg_term, size, similarity_measure, embedding = exponential(self._emb,self._adj)
+        
+        #get kl divergence
+        def compute_loss(similarity_measure, embedding):
             return -(torch.matmul(similarity_measure, torch.log(embedding))).sum()
         
         #### Learning ####
