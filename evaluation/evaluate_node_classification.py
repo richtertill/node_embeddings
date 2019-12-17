@@ -37,7 +37,7 @@ def evaluateNodeClassification(AdjMat,Y, embedding_method, train_ratio, train_ep
 
     for i in range(1,int(train_epochs/eval_epochs)):
 
-        emb = embedding_method.learn_embedding(i*eval_epochs)
+        emb = embedding_method.learn_embedding(eval_epochs)
 
         rf = RandomForestClassifier()
         rf.fit(train_X, train_y)
