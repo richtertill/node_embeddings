@@ -48,7 +48,8 @@ class Bernoulli(StaticGraphEmbedding):
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
-        
+        self._adj = AdjMat
+
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
         # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
