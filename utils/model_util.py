@@ -1,6 +1,6 @@
 # import embedding methods
 from embedding.bernoulli import Bernoulli
-from embedding.KL import KL
+from embedding.kl import KL
 
 def create_model_from_dict(m_dict):
 	if m_dict['name'] == "Bernoulli":
