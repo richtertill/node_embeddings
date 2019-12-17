@@ -15,8 +15,7 @@ from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
 from .decoder import sigmoid, gaussian, exponential
-
-
+from .similarity_measure import adjacency, laplacian, dw
 
 class KL(StaticGraphEmbedding):
 
@@ -79,7 +78,7 @@ class KL(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._similarity_measure}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -102,24 +101,40 @@ class KL(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
         
-        if(self._decoder == 'sigmoid'):
-            pos_term, neg_term, size, embedding = sigmoid(self._emb,self._Mat)
-        elif (self._decoder == 'gaussian'):
-            pos_term, neg_term, size, embedding = gaussian(self._emb,self._Mat)
-        elif (self._decoder == 'exponential'):
-            pos_term, neg_term, size, embedding = exponential(self._emb,self._Mat)
-        
-        #get kl divergence
-        def compute_loss(similarity_measure, embedding):
-            return -(torch.matmul(similarity_measure, torch.log(embedding))).sum()
+        def compute_loss_sig(emb, b=0.1, eps=1e-5):
+            dist = torch.matmul(emb,emb.T)+b
+            embedding = 1/(1+torch.exp(dist+eps)+eps)
+            embedding = embedding.to(torch.device("cuda"))
+            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+
+        def compute_loss_gaussian(emb, eps=1e-5):
+            gamma = 0.1
+            pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
+            embedding = torch.expm1(-pdist*gamma) + eps
+            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+
+        def compute_loss_exponential(emb, eps=1e-5):
+            emb_abs = torch.FloatTensor.abs(emb)
+            dist = -torch.matmul(emb_abs, emb_abs.T)
+            expdist = torch.exp(dist)
+            embedding = 1 - expdist
+            return -(torch.matmul(self._Mat, torch.log(embedding))).sum()
+
+
+        if(self._decoder == "sigmoid"):
+            compute_loss = compute_loss_sig
+        if(self._decoder == "gaussian"):
+            compute_loss = compute_loss_gaussian
+        if(self._decoder == "exponential"):
+            compute_loss = compute_loss_exponential
         
         #### Learning ####
 
         # Training loop
-        for epoch in range(self._epoch_begin, self._epoch_end):
+        for epoch in range(self._epoch_begin, self._epoch_end+1):
             self._opt.zero_grad()
-            loss = compute_loss(self._Mat, embedding)
-            loss.backward(retain_graph=True)
+            loss = compute_loss(self._emb)
+            loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:

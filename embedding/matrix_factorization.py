@@ -43,7 +43,7 @@ class MatrixFactorization(StaticGraphEmbedding):
         self._method_name = "Matrix_Fatorization"
         self._setup_done = False
 
-    def setup_model_input(self, adj_mat, sim_similarity_measure=None):
+    def setup_model_input(self, adj_mat, similarity_measure=None):
 
         if(similarity_measure):
             self._similarity_measure = similarity_measure

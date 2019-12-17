@@ -48,14 +48,18 @@ class Bernoulli(StaticGraphEmbedding):
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
-        self._adj = AdjMat
 
-        if(self._decoder == 'sigmoid'):
-            self._pos_term, self._neg_term, self._size, _ = sigmoid(self._emb,self._adj)
-        elif (self._decoder == 'gaussian'):
-            self._pos_term, self._neg_term, self._size, _ = gaussian(self._emb,self._adj)
-        elif (self._decoder == 'exponential'):
-            self._pos_term, self._neg_term, self._size, _ = exponential(self._emb,self._adj)
+        self._e1, self._e2 = AdjMat.nonzero()
+        self._e1 = torch.LongTensor(self._e1)
+        self._e2 = torch.LongTensor(self._e2)
+        # self._adj = graph_util.csr_matrix_to_torch_tensor(AdjMat)
+
+        # if(self._decoder == 'sigmoid'):
+        #     self._pos_term, self._neg_term, self._size, _ = sigmoid(self._emb,self._adj)
+        # elif (self._decoder == 'gaussian'):
+        #     self._pos_term, self._neg_term, self._size, _ = gaussian(self._emb,self._adj)
+        # elif (self._decoder == 'exponential'):
+        #     self._pos_term, self._neg_term, self._size, _ = exponential(self._emb,self._adj)
 
 
         ### Optimizer definition ###
@@ -78,7 +82,7 @@ class Bernoulli(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -101,16 +105,51 @@ class Bernoulli(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
 
-        # get bernoulli loss function
-        def compute_loss(pos_term, neg_term, size):
-            return -(pos_term.sum() + neg_term.sum()) / size**2
+
+        def compute_loss_sig(emb, b=0.1, eps=1e-5):
+            dist = torch.matmul(emb,emb.T)+b
+            sigdist = 1/(1+torch.exp(dist+eps)+eps)
+            logsigdist = torch.log(sigdist+eps)
+            pos_term = logsigdist[self._e1,self._e2]
+            neg_term = torch.log(1-sigdist)
+            neg_term[np.diag_indices(emb.shape[0])] = 0.0
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+
+
+        def compute_loss_gaussian(emb, eps=1e-5):
+            gamma = 0.1
+            pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
+            embedding = torch.expm1(-pdist*gamma) + eps # gamma = 0.1
+            neg_term = torch.log(embedding)
+            neg_term[np.diag_indices(emb.shape[0])] = 0.0
+            pos_term = -pdist[self._e1, self._e2]
+            neg_term[self._e1, self._e2] = 0.0
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+
+        def compute_loss_exponential(emb, eps=1e-5):
+            emb_abs = torch.FloatTensor.abs(emb)
+            dist = -torch.matmul(emb_abs,emb_abs.T)
+            neg_term=dist
+            neg_term[np.diag_indices(emb.shape[0])]=0.0
+            expdist=torch.exp(dist)
+            logdist=torch.log(1-expdist+eps)
+            pos_term = logdist[self._e1,self._e2]
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+
+
+        if(self._decoder == "sigmoid"):
+            compute_loss = compute_loss_sig
+        if(self._decoder == "gaussian"):
+            compute_loss = compute_loss_gaussian
+        if(self._decoder == "exponential"):
+            compute_loss = compute_loss_exponential
         
         #### Learning ####
         # Training loop
-        for epoch in range(self._epoch_begin, self._epoch_end):
+        for epoch in range(self._epoch_begin, self._epoch_end+1):
             self._opt.zero_grad()
-            loss = compute_loss(self._pos_term, self._neg_term, self._size)
-            loss.backward(retain_graph=True)
+            loss = compute_loss(self._emb)
+            loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
             if epoch % self._display_step == 0 and self._summary_path:

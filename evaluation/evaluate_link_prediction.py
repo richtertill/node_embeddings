@@ -38,7 +38,7 @@ def evaluateLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, ev
 
 	for i in range(1,int(train_epochs/eval_epochs)):
 
-		emb = embedding_method.learn_embedding(i*eval_epochs)
+		emb = embedding_method.learn_embedding(eval_epochs)
 
 		# Create edge embeddings for train_ones, train_zeros, test_ones, test_zeros
 		train_X = []
