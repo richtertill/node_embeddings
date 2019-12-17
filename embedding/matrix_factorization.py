@@ -11,6 +11,7 @@ import torch.distributions as dist
 from torch.utils.tensorboard import SummaryWriter
 from time import time
 from .static_graph_embedding import StaticGraphEmbedding
+from .similarity_measure import adjacency, laplacian, dw
 from utils import graph_util
 from gust import preprocessing as GustPreprosessing
 
@@ -49,16 +50,12 @@ class MatrixFactorization(StaticGraphEmbedding):
 
         # transform matrix to correct type
         if (self._matrix_type=="adjacency"):
-            matrix = adj_mat 
-        if (self._matrix_type=="unnormalized_lapla"):
-            matrix = GustPreprosessing.construct_laplacian(adj_mat,type="unnormalized")
-        if (self._matrix_type=="random_walk_lapla"):
-            matrix = GustPreprosessing.construct_laplacian(adj_mat,type="random_walk")
-        if (self._matrix_type=="symmetrized_lapla"):
-            matrix = GustPreprosessing.construct_laplacian(adj_mat,type="symmetrized")
+            self._Mat = adjacency(A)
+        if (self._matrix_type=="laplacian"):
+            self._Mat = laplacian(A)
+        if (self._matrix_type=="dw"):
+            self._Mat = dw(A)
                     
-        # sparse matrix to cuda tensor
-        self._Mat = graph_util.csr_matrix_to_torch_tensor(adj_mat)
         self._setup_done = True
 
     def get_method_name(self):
