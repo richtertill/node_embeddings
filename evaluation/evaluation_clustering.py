@@ -45,7 +45,7 @@ def plot_boxplot(data,plot_boxplot=True):
 
 
 def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
-          result_folder, train_ratio, train_epochs, eval_epochs,
+          result_folder, eval_epochs,
           undirected=True):
     print('\tNode clustering evaluation has started...')
 
