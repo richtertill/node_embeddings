@@ -44,7 +44,7 @@ def set_dict(root_dict,round_id, embedding_method):
 
 
 def exp_Node_Classification(AdjMat, Y, dataset_name, embedding_method, rounds,
-          result_folder, eval_epochs,
+          result_folder, train_ratio, eval_epochs,
           undirected=True):
     print('\tNode classification evaluation has started...')
 
@@ -60,14 +60,14 @@ def exp_Node_Classification(AdjMat, Y, dataset_name, embedding_method, rounds,
         micros = []
         macros = []
 
-        emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
+        #emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
 
         for round_id in range(rounds):
 
             set_dict(summary_folder_extended,round_id,embedding_method)
-
-            micro,macro,acc = evaluateNodeClassificationg(
-               Y, emb, round_id)
+            emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
+            micro,macro,acc = evaluateNodeClassification(
+               Y, emb, train_ratio, round_id)
 
             accuracy.append(acc)
             micros.append(micro)

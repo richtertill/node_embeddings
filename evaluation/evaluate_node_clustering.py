@@ -20,9 +20,7 @@ def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
     kmeans = KMeans(n_clusters=n_cluster, random_state=round_id, init='k-means++').fit(emb)
     labels = kmeans.labels_
     norm_mutual_info = normalized_mutual_info_score(labels_true, labels)
-    print("Normalized Mutual Information: %0.3f"
-          % normalized_mutual_info_score(labels_true, labels))
-
+    print (labels_true,labels)
     return norm_mutual_info
 
 
@@ -53,21 +51,22 @@ def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
     with open(result_folder + '/node_clustering_summary.txt', 'a') as file:
         file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: \n')
 
-        norm_MI_score = [ ]
+        norm_MI_score = []
         summary_folder_extended = result_folder + "/train/" + str(
             dataset_name) + "/" + embedding_method.get_method_summary() + "/"
-        emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
+        #emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
 
         for round_id in range(rounds):
             set_dict(summary_folder_extended,round_id,embedding_method)
-
+            emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
             norm_mutual_info = evaluateNodeClustering(
                Y, emb, round_id)
             norm_MI_score.append(norm_mutual_info)
-
+            print(round_id)
             writer = embedding_method.get_summary_writer()
             writer.add_scalar('Node Clustering/Norm_MI', norm_mutual_info, round_id)
-
+        
         mean_norm_MI_score = np.mean(np.array(norm_MI_score))
         file.write(f'Normalized_mutual_information: {mean_norm_MI_score}\n')
-        plot_boxplot(norm_MI_score, plot_boxplot=True)
+        #plot_boxplot(norm_MI_score, plot_boxplot=True)
+        return norm_MI_score
