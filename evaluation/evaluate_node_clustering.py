@@ -19,7 +19,6 @@ def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
     model = KMeans(n_clusters=n_cluster, random_state=round_id, init='k-means++').fit(emb)
     labels = model.labels_
     norm_mutual_info = normalized_mutual_info_score(labels_true, labels)
-    print(labels_true, labels)
     return norm_mutual_info
 
 
@@ -61,7 +60,6 @@ def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
             norm_mutual_info = evaluateNodeClustering(
                 Y, emb, round_id)
             norm_MI_score.append(norm_mutual_info)
-            print(round_id)
             writer = embedding_method.get_summary_writer()
             writer.add_scalar('Node Clustering/Norm_MI', norm_mutual_info, round_id)
 
