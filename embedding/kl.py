@@ -104,7 +104,7 @@ class KL(StaticGraphEmbedding):
         self._epoch_end += num_epoch
         
         def compute_loss_sig(emb, b=0.1, eps=1e-5):
-            dist = torch.matmul(emb,emb.T)+b
+            dist = torch.matmul(emb,emb.T+eps)+b
             embedding = 1/(1+torch.exp(dist+eps))
             embedding = embedding.to(torch.device("cuda"))
             return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
@@ -114,6 +114,16 @@ class KL(StaticGraphEmbedding):
             # P = inv_degree.mm(self._Mat) 
             # loss = -(P*torch.log( 10e-9+ F.softmax(emb.mm(emb.t() ),dim=1,dtype=torch.float)))
             # return loss.mean()
+            
+        def compute_loss_softmax(emb, b=0.1, eps=1e-5):
+            dist = torch.matmul(emb, emb.T)+b
+            softmax = nn.Softmax(dim=0)
+            embedding = softmax(dist)
+            #mat = softmax(self._Mat)
+            #embedding = nn.Softmax(emb, dim=0)
+            embedding = embedding.to(torch.device("cuda"))
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
+            #return -(torch.matmul(mat, torch.log(embedding + eps))).sum()
 
         def compute_loss_gaussian(emb, eps=1e-5):
             gamma = 0.1
@@ -132,7 +142,7 @@ class KL(StaticGraphEmbedding):
 
 
         if(self._decoder == "sigmoid"):
-            compute_loss = compute_loss_sig
+            compute_loss = compute_loss_softmax
         if(self._decoder == "gaussian"):
             compute_loss = compute_loss_gaussian
         if(self._decoder == "exponential"):

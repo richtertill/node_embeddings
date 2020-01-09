@@ -49,19 +49,37 @@ from utils import graph_util
 
 
 def adjacency(A):
+    # Adjacency Matrix A
     return graph_util.csr_matrix_to_torch_tensor(A)
 
 def laplacian(A):
+    return
+
+def Transition(A):
+    #Laplacian P=D^−1A
     num_nodes = A.shape[0]
     D = np.ravel(A.sum(1))
     D[D == 0] = 1  # avoid division by 0 error
     L = sp.diags(D) - A
     return graph_util.csr_matrix_to_torch_tensor(L)
 
-def dw(A):
+def sym_normalized_laplacian(A):
+    #Symmetric, Normalized Laplacian P=D^(−1/2)AD^(−1/2)
     num_nodes = A.shape[0]
     D = np.ravel(A.sum(1))
     D[D == 0] = 1  # avoid division by 0 error
     D_sqrt = np.sqrt(D)
     L = A / D_sqrt[:, None] / D_sqrt[None, :]
     return graph_util.csr_matrix_to_torch_tensor(L)
+
+def NetMF(A):
+    return
+
+def PPR(A):
+    return
+
+def Sum_Power_Tran(A):
+    return
+
+def Sim_Rank(A):
+    return
