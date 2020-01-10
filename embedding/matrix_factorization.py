@@ -11,7 +11,7 @@ import torch.distributions as dist
 from torch.utils.tensorboard import SummaryWriter
 from time import time
 from .static_graph_embedding import StaticGraphEmbedding
-from .similarity_measure import adjacency, laplacian, dw
+from .similarity_measure import adjacency, laplacian, Transition, sym_normalized_laplacian, NetMF, PPR, Sum_Power_Tran, Sim_Rank
 from utils import graph_util
 from gust import preprocessing as GustPreprosessing
 
