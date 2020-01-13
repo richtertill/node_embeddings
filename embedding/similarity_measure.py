@@ -181,7 +181,7 @@ def sim_rank(A, C = 0.8, acc = 0.1):
     #Converge
     while True:
         #k+=1
-        S_new = torch.max(M*S_old,torch.eye(M.shape[0]))
+        S_new = torch.max(M*S_old.float(),torch.eye(M.shape[0]).double())
         
         if torch.max(torch.abs(S_new-S_old))<acc:
             break

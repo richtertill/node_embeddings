@@ -59,6 +59,8 @@ class KL(StaticGraphEmbedding):
             self._Mat = ppr(adj_mat)
         if (self._similarity_measure=="sum_power_tran"):
             self._Mat = sum_power_tran(adj_mat)
+        if (self._similarity_measure=="sim_rank"):
+            self._Mat = sim_rank(adj_mat)
 
         self._Mat = self._Mat
         
@@ -112,7 +114,7 @@ class KL(StaticGraphEmbedding):
             #mat = softmax(self._Mat)
             #embedding = nn.Softmax(emb, dim=0)
             # embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps).double())).sum()
             #return -(torch.matmul(mat, torch.log(embedding + eps))).sum()
 
         #### Learning ####
