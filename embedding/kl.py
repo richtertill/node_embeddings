@@ -38,10 +38,10 @@ class KL(StaticGraphEmbedding):
         self._epoch_end = 0
         self._setup_done = False
 
-    def setup_model_input(self, AdjMat):
+    def setup_model_input(self, adj_mat):
         # input
-        self._num_nodes = AdjMat.shape[0]
-        self._num_edges = AdjMat.sum()
+        self._num_nodes = adj_mat.shape[0]
+        self._num_edges = adj_mat.sum()
 
         # Model parameters
         self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 0.1))
@@ -51,14 +51,16 @@ class KL(StaticGraphEmbedding):
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
 
 
-        if (self._similarity_measure=="adjacency"):
-            self._Mat = adjacency(AdjMat)
-        if (self._similarity_measure=="laplacian"):
-            self._Mat = laplacian(AdjMat)
-        if (self._similarity_measure=="dw"):
-            self._Mat = dw(AdjMat)
+        if (self._similarity_measure=="transition"):
+            self._Mat = transition(adj_mat)
+        if (self._similarity_measure=="NetMF"):
+            self._Mat = NetMF(adj_mat)
+        if (self._similarity_measure=="ppr"):
+            self._Mat = ppr(adj_mat)
+        if (self._similarity_measure=="sum_power_tran"):
+            self._Mat = sum_power_tran(adj_mat)
 
-        self._Mat = self._Mat.cuda()
+        self._Mat = self._Mat
         
         ### Optimizer definition ###
         # Regularize the embeddings but don't regularize the bias
@@ -109,11 +111,10 @@ class KL(StaticGraphEmbedding):
             embedding = softmax(dist)
             #mat = softmax(self._Mat)
             #embedding = nn.Softmax(emb, dim=0)
-            embedding = embedding.to(torch.device("cuda"))
+            # embedding = embedding.to(torch.device("cuda"))
             return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
             #return -(torch.matmul(mat, torch.log(embedding + eps))).sum()
 
-        
         #### Learning ####
 
         # Training loop
