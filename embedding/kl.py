@@ -15,7 +15,7 @@ from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
 from .decoder import sigmoid, gaussian, exponential
-from .similarity_measure import adjacency, laplacian, Transition, sym_normalized_laplacian, NetMF, PPR, Sum_Power_Tran, Sim_Rank
+from .similarity_measure import adjacency, laplacian, transition, sym_normalized_laplacian, NetMF, ppr, sum_power_tran, sim_rank
 
 class KL(StaticGraphEmbedding):
 

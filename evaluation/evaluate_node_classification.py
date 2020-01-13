@@ -26,26 +26,20 @@ from sklearn.model_selection import train_test_split
 #                 prediction[i, label] = 1
 #         return prediction
 
-def evaluateNodeClassification(AdjMat,Y, embedding_method, train_ratio, train_epochs, eval_epochs, undirected=True):
+def evaluateNodeClassification( emb, Y, embedding_method,round_id, train_ratio, undirected=True):
     
     writer = embedding_method.get_summary_writer()
-    embedding_method.setup_model_input(AdjMat)
-
-    adjmat_cpu = AdjMat
-    y_cpu = Y
-    emb = embedding_method.learn_embedding(eval_epochs)
-    train_X, test_X, train_y, test_y = train_test_split(emb, y_cpu, test_size=1-train_ratio)
+    train_X, test_X, train_y, test_y = train_test_split(emb, Y, random_state = round_id,test_size =1-train_ratio)
+    rf = RandomForestClassifier(random_state=round_id)
+    rf.fit(train_X, train_y)
+    test_preds = rf.predict(test_X)
     
-    for i in range(1,int(train_epochs/eval_epochs)):
-        rf = RandomForestClassifier(random)
-        rf.fit(train_X, train_y)
-        test_preds = rf.predict(test_X)
-        micro = f1_score(test_y, test_preds, average='micro')
-        macro = f1_score(test_y, test_preds, average='macro')
+    micro = f1_score(test_y, test_preds, average='micro')
+    macro = f1_score(test_y, test_preds, average='macro')
 
         # write to tensorboard
-        writer.add_scalar('Node Classification/F1-micro', micro, i*eval_epochs)
-        writer.add_scalar('Node Classification/F1-macro', macro, i*eval_epochs)
+    writer.add_scalar('Node Classification/F1-micro', micro, round_id)
+    writer.add_scalar('Node Classification/F1-macro', macro, round_id)
 
     return micro, macro
 
@@ -62,13 +56,16 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
         micros = [None] * rounds
         macros = [None] * rounds
         summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
+        embedding_method.setup_model_input(AdjMat)
+        emb = embedding_method.learn_embedding(eval_epochs)
         for round_id in range(rounds):
+            
             summary_folder_extended_round = summary_folder_extended + str(round_id+1)
             pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
             embedding_method.set_summary_folder(summary_folder_extended_round)
             embedding_method.reset_epoch()
             micros[round_id], macros[round_id] = evaluateNodeClassification(
-                    AdjMat,Y, embedding_method, train_ratio, train_epochs, eval_epochs)
+                    emb, Y, embedding_method, round_id, train_ratio)
         
 
         mean_f1_micro_score = np.mean(np.array(micros))
