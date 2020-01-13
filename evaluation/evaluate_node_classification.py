@@ -33,13 +33,11 @@ def evaluateNodeClassification(AdjMat,Y, embedding_method, train_ratio, train_ep
 
     adjmat_cpu = AdjMat
     y_cpu = Y
-    train_X, test_X, train_y, test_y = train_test_split(adjmat_cpu, y_cpu, test_size=1-train_ratio)
-
+    emb = embedding_method.learn_embedding(eval_epochs)
+    train_X, test_X, train_y, test_y = train_test_split(emb, y_cpu, test_size=1-train_ratio)
+    
     for i in range(1,int(train_epochs/eval_epochs)):
-
-        emb = embedding_method.learn_embedding(eval_epochs)
-
-        rf = RandomForestClassifier()
+        rf = RandomForestClassifier(random)
         rf.fit(train_X, train_y)
         test_preds = rf.predict(test_X)
         micro = f1_score(test_y, test_preds, average='micro')
