@@ -102,18 +102,6 @@ class KL(StaticGraphEmbedding):
             raise ValueError('Model input parameters not defined.')
 
         self._epoch_end += num_epoch
-        
-        def compute_loss_sig(emb, b=0.1, eps=1e-5):
-            dist = torch.matmul(emb,emb.T+eps)+b
-            embedding = 1/(1+torch.exp(dist+eps))
-            embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
-
-            # degree= self._Mat.sum(axis=1)
-            # inv_degree=torch.diagflat(1/degree).cuda()
-            # P = inv_degree.mm(self._Mat) 
-            # loss = -(P*torch.log( 10e-9+ F.softmax(emb.mm(emb.t() ),dim=1,dtype=torch.float)))
-            # return loss.mean()
             
         def compute_loss_softmax(emb, b=0.1, eps=1e-5):
             dist = torch.matmul(emb, emb.T)+b
@@ -125,35 +113,13 @@ class KL(StaticGraphEmbedding):
             return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
             #return -(torch.matmul(mat, torch.log(embedding + eps))).sum()
 
-        def compute_loss_gaussian(emb, eps=1e-5):
-            gamma = 0.1
-            pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
-            embedding = torch.expm1(-pdist*gamma) + eps
-            embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
-
-        def compute_loss_exponential(emb, eps=1e-5):
-            emb_abs = torch.FloatTensor.abs(emb)
-            dist = -torch.matmul(emb_abs, emb_abs.T)
-            expdist = torch.exp(dist)
-            embedding = 1 - expdist
-            embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
-
-
-        if(self._decoder == "sigmoid"):
-            compute_loss = compute_loss_softmax
-        if(self._decoder == "gaussian"):
-            compute_loss = compute_loss_gaussian
-        if(self._decoder == "exponential"):
-            compute_loss = compute_loss_exponential
         
         #### Learning ####
 
         # Training loop
         for epoch in range(self._epoch_begin, self._epoch_end+1):
             self._opt.zero_grad()
-            loss = compute_loss(self._emb)
+            loss = compute_loss_softmax(self._emb)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
