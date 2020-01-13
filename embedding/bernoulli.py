@@ -43,7 +43,7 @@ class Bernoulli(StaticGraphEmbedding):
 
         # Model parameters
         self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 0.1))
-        self._X = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
+        self._X = nn.Parameter(torch.empty(self._embedding_dim, self._embedding_dim).normal_(0.0, 0.1))
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))

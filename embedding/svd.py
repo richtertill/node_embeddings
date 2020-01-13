@@ -51,7 +51,7 @@ class MatrixFactorization(StaticGraphEmbedding):
         # transform matrix to correct type
         if (self._matrix_type=="adjacency"):
             matrix = adj_mat 
-        if (self._matrix_type=="unnormalized_lapla"):
+        if (self._matrix_type=="laplacian"):
             matrix = GustPreprosessing.construct_laplacian(adj_mat,type="unnormalized")
         if (self._matrix_type=="random_walk_lapla"):
             matrix = GustPreprosessing.construct_laplacian(adj_mat,type="random_walk")
@@ -59,7 +59,7 @@ class MatrixFactorization(StaticGraphEmbedding):
             matrix = GustPreprosessing.construct_laplacian(adj_mat,type="symmetrized")
                     
         # sparse matrix to cuda tensor
-        self._Mat = graph_util.csr_matrix_to_torch_tensor(adj_mat)
+        self._Mat = graph_util.csr_matrix_to_torch_tensor(matrix)
         self._setup_done = True
 
     def get_method_name(self):

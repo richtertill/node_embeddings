@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.distributions as dist
 from time import time
 
-from .similarity_measure import adjacency, laplacian, Transition, sym_normalized_laplacian, NetMF, PPR, Sum_Power_Tran, Sim_Rank
+from .similarity_measure import adjacency, laplacian, transition, sym_normalized_laplacian, NetMF, ppr, sum_power_tran, sim_rank
 
 def sigmoid(emb,similarity_measure, b=0.1, eps=1e-5):
     # embedding = sig(ZZ^T+b)

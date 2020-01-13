@@ -58,9 +58,9 @@ def laplacian(A):
     num_nodes = A.shape[0]
     D = np.ravel(A.sum(1))
     L = sp.diags(D) - A
-    return L
+    return graph_util.csr_matrix_to_torch_tensor(L)
 
-def Transition(A):
+def transition(A):
     #Laplacian P=D^−1A
     num_nodes = A.shape[0]
     D = np.ravel(A.sum(1))
@@ -113,28 +113,37 @@ def NetMF(A):
 
     #Compute L
     L = u*np.diag(np.sqrt(s+eps))
-    print(L.sum(axis=1))
+    # print(L.sum(axis=1))
     return graph_util.csr_matrix_to_torch_tensor(L)
 
-def PPR(A):
+def ppr(A):
     #Personalized PageRank Matrix as described in https://openreview.net/pdf?id=H1gL-2A9Ym with the there used hyperparameter alpha=0.1
     #P=alpha(I-(1-alpha)*D^-1/2(A+I)D^-1/2)^-1
     alpha = 0.1  
-    num_nodes = A.shape[0]
-    D = np.ravel(A.sum(1))
+    #num_nodes = A.shape[0]
+    #D = np.ravel(A.sum(1))
     #D[D == 0] = 1  # avoid division by 0 error
-    D_sqrt = np.sqrt(D)
-    a=np.ones(D_sqrt.shape[0])
-    D_sqrt_inv = np.divide(a, D_sqrt, out=np.zeros_like(a), where=D!=0)
-    A_tilde = sp.diags(D_sqrt_inv) * (A + sp.identity(A.shape[0])) * sp.diags(D_sqrt_inv)
-    L_inv = (sp.identity(A.shape[0]) - (1-alpha) * A_tilde)
-    L = alpha * np.linalg.pinv(L_inv.toarray())
-    return graph_util.csr_matrix_to_torch_tensor(L)
+    #D_sqrt = np.sqrt(D)
+    #a=np.ones(D_sqrt.shape[0])
+    #D_sqrt_inv = np.divide(a, D_sqrt, out=np.zeros_like(a), where=D!=0)
+    #A_tilde = sp.diags(D_sqrt_inv) * (A + sp.identity(A.shape[0])) * sp.diags(D_sqrt_inv)
+    A = graph_util.csr_matrix_to_torch_tensor(A)
+    A_tilde = torch.tensor(A / torch.sum(A, 1,keepdims=True))
+    L = alpha*torch.inverse(torch.eye(A.shape[0])-(1-alpha)*A_tilde)
+    #L_inv = (sp.identity(A.shape[0]) - (1-alpha) * A_tilde)
+    #L = alpha * np.linalg.pinv(L_inv.toarray())
+    #return graph_util.csr_matrix_to_torch_tensor(L)
+    return L
 
-def Sum_Power_Tran(A):
+def sum_power_tran(A):
     #T is the window size, as a small window size algorithm is used, set T=10, which showed the best results in the paper
     T=10
     
+    #volume of the graph, usually for weighted graphs, here weight 1
+    vol = A.sum()
+    #b is the number of negative samples, hyperparameter
+    b = 3
+
     #Transition Matrix P=D^-1A
     num_nodes = A.shape[0]
     D = np.ravel(A.sum(1))
@@ -151,5 +160,5 @@ def Sum_Power_Tran(A):
     M_max = np.maximum(M,np.ones(M.shape[0])) #this step is proposed to yield stability, if eg log is applied
     return graph_util.csr_matrix_to_torch_tensor(M_max)
 
-def Sim_Rank(A):
+def sim_rank(A):
     return
