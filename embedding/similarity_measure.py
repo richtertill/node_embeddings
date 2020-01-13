@@ -160,5 +160,33 @@ def sum_power_tran(A):
     M_max = np.maximum(M,np.ones(M.shape[0])) #this step is proposed to yield stability, if eg log is applied
     return graph_util.csr_matrix_to_torch_tensor(M_max)
 
-def sim_rank(A):
-    return
+def sim_rank(A, C = 0.8, acc = 0.1):
+    #https://link.springer.com/chapter/10.1007/978-3-642-14246-8_29
+    #Algorithm 1: AUG-SimRank: Accelerative SimRank for Undirected Graphs
+    A = torch.tensor(A.todense())
+    
+    #Calculate Transition Probability Q
+    Q = A / A.sum(1, keepdims=True)
+    
+    #Decompose Q
+    eigvalues, eigvectors = torch.eig(Q, eigenvectors=True)
+    #for undirected graphs all eigenvalues are real
+    eigvalues = eigvalues[:,0]
+    
+    #Initialize
+    S_old = torch.eye(Q.shape[0])
+    M = C * torch.diag(eigvalues) @ torch.diag(eigvalues).T
+    #k=0
+    
+    #Converge
+    while True:
+        #k+=1
+        S_new = torch.max(M*S_old,torch.eye(M.shape[0]))
+        
+        if torch.max(torch.abs(S_new-S_old))<acc:
+            break
+        S_old = S_new
+    
+    L = eigvectors @ S_new @ torch.inverse(eigvectors)
+    
+    return L
