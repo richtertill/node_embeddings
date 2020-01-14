@@ -114,7 +114,7 @@ class KL(StaticGraphEmbedding):
             #mat = softmax(self._Mat)
             #embedding = nn.Softmax(emb, dim=0)
             # embedding = embedding.to(torch.device("cuda"))
-            return -(torch.matmul(self._Mat, torch.log(embedding + eps).double())).sum()
+            return -(torch.matmul(self._Mat, torch.log(embedding + eps))).sum()
             #return -(torch.matmul(mat, torch.log(embedding + eps))).sum()
 
         #### Learning ####
