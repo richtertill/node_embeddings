@@ -14,6 +14,8 @@ sys.path.append(os.path.realpath(__file__))
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 from .decoder import sigmoid, gaussian, exponential
+from .similarity_measure import adjacency
+
 
 
 class Bernoulli(StaticGraphEmbedding):
@@ -35,6 +37,7 @@ class Bernoulli(StaticGraphEmbedding):
         self._epoch_begin = 0
         self._epoch_end = 0
         self._setup_done = False
+        self._similarity_measure = "adjacency"
 
     def setup_model_input(self, AdjMat):
         # input
@@ -47,7 +50,7 @@ class Bernoulli(StaticGraphEmbedding):
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
-
+        
 
         self._e1, self._e2 = AdjMat.nonzero()
         self._e1 = torch.LongTensor(self._e1)
