@@ -19,7 +19,7 @@ from .similarity_measure import adjacency, laplacian, transition, sym_normalized
 
 class KL(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
+    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency", W_enabled=False,
                  learning_rate=1e-2, weight_decay=1e-7, display_step=10):
         ''' Initialize the Bernoulli class
 
@@ -37,6 +37,7 @@ class KL(StaticGraphEmbedding):
         self._epoch_begin = 0
         self._epoch_end = 0
         self._setup_done = False
+        self._W_enabled = W_enabled
 
     def setup_model_input(self, adj_mat):
         # input
@@ -45,7 +46,7 @@ class KL(StaticGraphEmbedding):
 
         # Model parameters
         self._emb = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 0.1))
-        self._X = nn.Parameter(torch.empty(self._num_nodes, self._embedding_dim).normal_(0.0, 1.0))
+        self._W = nn.Parameter(torch.empty(self._embedding_dim, self._embedding_dim).normal_(0.0, 0.1))
         self._edge_proba = self._num_edges / (self._num_nodes ** 2 - self._num_nodes)
         self._bias_init = np.log(self._edge_proba / (1 - self._edge_proba))
         self._b = nn.Parameter(torch.Tensor([self._bias_init]))
@@ -84,7 +85,7 @@ class KL(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._similarity_measure}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._similarity_measure}_{self._W_enabled}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -107,8 +108,11 @@ class KL(StaticGraphEmbedding):
 
         self._epoch_end += num_epoch
             
-        def compute_loss_softmax(emb, b=0.1, eps=1e-5):
-            dist = torch.matmul(emb, emb.T)+b
+        def compute_loss_softmax(emb,W, b=0.1, eps=1e-5):
+            if(self._W_enabled):
+                dist = torch.matmul(torch.matmul(emb,W),emb.T)+b
+            else:
+                dist = torch.matmul(emb,emb.T)+b
             softmax = nn.Softmax(dim=0)
             embedding = softmax(dist)
             #mat = softmax(self._Mat)
@@ -122,7 +126,7 @@ class KL(StaticGraphEmbedding):
         # Training loop
         for epoch in range(self._epoch_begin, self._epoch_end+1):
             self._opt.zero_grad()
-            loss = compute_loss_softmax(self._emb)
+            loss = compute_loss_softmax(self._emb, self._W)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs

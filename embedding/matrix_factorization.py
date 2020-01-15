@@ -18,7 +18,7 @@ from gust import preprocessing as GustPreprosessing
 
 class MatrixFactorization(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, similarity_measure="adjacency"):
+    def __init__(self, embedding_dimension=64, similarity_measure="adjacency",  embedding_option=1):
         '''
         Parameters
         ----------
@@ -41,6 +41,7 @@ class MatrixFactorization(StaticGraphEmbedding):
         self._embedding_dim = embedding_dimension
         self._similarity_measure = similarity_measure
         self._method_name = "Matrix_Fatorization"
+        self._embedding_option = embedding_option
         self._setup_done = False
 
     def setup_model_input(self, adj_mat, similarity_measure=None):
@@ -62,6 +63,8 @@ class MatrixFactorization(StaticGraphEmbedding):
             self._Mat = ppr(adj_mat)
         if (self._similarity_measure=="sum_power_tran"):
             self._Mat = sum_power_tran(adj_mat)
+        if (self._similarity_measure=="sim_rank"):
+            self._Mat = sim_rank(adj_mat)
                     
         self._setup_done = True
 
@@ -69,7 +72,7 @@ class MatrixFactorization(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}_{self._similarity_measure}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._similarity_measure}_{self._embedding_option}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -89,7 +92,11 @@ class MatrixFactorization(StaticGraphEmbedding):
 
         #### Learning ####
         U,S,V = torch.svd(self._Mat)
-        self._emb = U[:,:self._embedding_dim]
+
+        if(self._embedding_option==1):
+            self._emb = U[:,:self._embedding_dim]
+        elif(self._embedding_option==2):
+            self._emb = torch.matmul(U,V)[:,:self._embedding_dim]
 
         # Put the embedding back on the CPU
         emb_np = self._emb.cpu().detach().numpy()
