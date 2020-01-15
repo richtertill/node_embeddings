@@ -29,8 +29,8 @@ def compute_embedding(embedding_method, AdjMat, eval_epochs):
     return emb
 
 
-def set_dict(root_dict, round_id, embedding_method):
-    summary_folder_extended_round = root_dict + str(round_id + 1)
+def set_dict(root_dict, embedding_method):
+    summary_folder_extended_round = root_dict + str(1)
     pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True)
     embedding_method.set_summary_folder(summary_folder_extended_round)
 
@@ -41,23 +41,19 @@ def plot_boxplot(data, plot_boxplot=True):
 
 
 def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
-                        result_folder, eval_epochs,
+                        result_folder, train_epochs, eval_epochs,
                         undirected=True):
     print('\tNode clustering evaluation has started...')
-
     pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
     with open(result_folder + '/node_clustering_summary.txt', 'a') as file:
         file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: \n')
-
+        set_dict(result_folder, embedding_method)
+        emb = compute_embedding(embedding_method, AdjMat, train_epochs)
         norm_MI_score = []
-        summary_folder_extended = result_folder + "/train/" + str(
-            dataset_name) + "/" + embedding_method.get_method_summary() + "/"
+    
         # emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
 
         for round_id in range(rounds):
-            set_dict(summary_folder_extended, round_id, embedding_method)
-            for i in range(20):
-                emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
             norm_mutual_info = evaluateNodeClustering(
                 Y, emb, round_id)
             norm_MI_score.append(norm_mutual_info)
