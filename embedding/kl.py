@@ -124,7 +124,7 @@ class KL(StaticGraphEmbedding):
         #### Learning ####
 
         # Training loop
-        for epoch in range(self._epoch_begin, self._epoch_end+1):
+        for epoch in range(num_epoch):
             self._opt.zero_grad()
             loss = compute_loss_softmax(self._emb, self._W)
             loss.backward()

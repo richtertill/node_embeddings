@@ -153,13 +153,13 @@ class Bernoulli(StaticGraphEmbedding):
         
         #### Learning ####
         # Training loop
-        for epoch in range(self._epoch_begin, self._epoch_end+1):
+        for epoch in range(num_epoch):
             self._opt.zero_grad()
             loss = compute_loss(self._emb, self._W)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
-            if epoch % self._display_step == 0 and self._summary_path:
+            if epoch % 50 == 0 and self._summary_path:
                 print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
 
