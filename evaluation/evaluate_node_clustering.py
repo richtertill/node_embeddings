@@ -56,7 +56,8 @@ def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
 
         for round_id in range(rounds):
             set_dict(summary_folder_extended, round_id, embedding_method)
-            emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
+            for i in range(20):
+                emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
             norm_mutual_info = evaluateNodeClustering(
                 Y, emb, round_id)
             norm_MI_score.append(norm_mutual_info)

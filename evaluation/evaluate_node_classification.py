@@ -57,7 +57,8 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
         macros = [None] * rounds
         summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
         embedding_method.setup_model_input(AdjMat)
-        emb = embedding_method.learn_embedding(eval_epochs)
+        for i in range(1,50):
+            emb = embedding_method.learn_embedding(eval_epochs)
         for round_id in range(rounds):
             
             summary_folder_extended_round = summary_folder_extended + str(round_id+1)
