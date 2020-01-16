@@ -62,6 +62,8 @@ class KL(StaticGraphEmbedding):
             self._Mat = sum_power_tran(adj_mat)
         if (self._similarity_measure=="sim_rank"):
             self._Mat = sim_rank(adj_mat)
+        if (self._similarity_measure=="adjacency"):
+            self._Mat = adjacency(adj_mat)
 
         self._Mat = self._Mat
         
