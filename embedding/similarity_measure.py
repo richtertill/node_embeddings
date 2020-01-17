@@ -22,6 +22,91 @@ import torch.distributions as dist
 from time import time
 from utils import graph_util
 
+#helper:
+def compute_degree_matrix(adj_np):
+    degree= torch.from_numpy(adj_np.sum(axis=1)).cuda()
+    return degree
+
+# Adjacency Matrix A
+def adjacency(adj_np):
+    return torch.from_numpy(adj_np).cuda()
+
+#Laplacian Matrix P=D-A
+def laplacian(adj_gpu, adj_np):
+    degree= compute_degree_matrix(adj_np)
+    P = degree-adj_gpu
+    return graph_util.csr_matrix_to_torch_tensor(L)
+
+#Transition P=D^−1A
+def compute_transition(adj_gpu,adj_np):
+    degree= compute_degree_matrix(adj_np)
+    inv_degree=torch.diagflat(1/degree)
+    P = inv_degree.mm(adj_gpu) 
+    return P
+
+#Symmetric, Normalized Laplacian P=D^(−1/2)AD^(−1/2)
+def sym_normalized_laplacian(adj_gpu,adj_np):
+    eps=1e-5
+    degree= compute_degree_matrix(adj_np)
+    sqrt = torch.sqrt(degree+eps).cuda()
+    sqrtinv = torch.inverse(sqrt).cuda()
+    P = torch.matmul(sqrtinv, torch.matmul(adj_gpu, sqrtinv)).cuda()
+    return P
+
+def NetMF(adj_gpu, adj_np):
+    eps=1e-5
+    #volume of the graph, usually for weighted graphs, here weight 1
+    vol = A.sum()
+    
+    #b is the number of negative samples, hyperparameter
+    b = 3
+    
+    #T is the window size, as a small window size algorithm is used, set T=10, which showed the best results in the paper
+    T=10
+    
+    #Transition Matrix P=D^-1A
+    P = compute_transition(adj_gpu, adj_np)
+    
+    #Compute M = vol(G)/bT (sum_r=1^T P^r)D^-1
+    sum_torch=torch.zeros_like(P).cuda()
+    for r in range(1,T+1):
+        sum_torch+=P.pow(r)
+    M = torch.matmul(sum_torch, torch.inverse(compute_degree_matrix(adj_np))).cuda() * vol / (b*T)
+    M_max = torch.max(M,torch.ones(M.shape[0], M.shape[0])).cuda()
+
+    #Compute SVD of M
+    u, s, v = torch.svd(torch.log(M_max), some=False).cuda()
+
+    #Compute L
+    L = u*torch.diag(torch.sqrt(s+eps)).cuda()
+    return L
+    
+#Personalized PageRank Matrix as described in https://openreview.net/pdf?id=H1gL-2A9Ym with the there used hyperparameter alpha=0.1
+#P=alpha(I-(1-alpha)*D^-1/2(A+I)D^-1/2)^-1
+def compute_ppr(adj_gpu, adj_np, dim, alpha = 0.1 ):
+    term_2 = (1-alpha)*compute_transition(adj_gpu,adj_np)
+    term_1 = torch.eye(dim,device='cuda')
+    matrix = term_1-term_2
+    P = alpha*torch.inverse(matrix)
+    return P
+
+
+def compute_sum_power_tran(adj_gpu, adj_np, T = 10 ):
+    matrix = compute_transition(adj_gpu,adj_np)
+    P = torch.zeros_like(matrix).cuda()
+    for i in range(0,T+1):
+        P = P + matrix.pow(i)
+    return P
+
+def simrank(adj_np, adj_gpu):
+    #convert adjacency to networkx graph
+    B = nx.from_scipy_sparse_matrix(adj_np)
+    #built in simrank
+    sim = nx.simrank_similarity(B)
+    lol = [[sim[u][v] for v in sorted(sim[u])] for u in sorted(sim)]
+    P = torch.tensor(lol)
+    return P
+
 # def adjacency(A):
 #     # Adjacency Matrix A
 #     return torch.FloatTensor(A.toarray()).cuda()
@@ -48,7 +133,8 @@ from utils import graph_util
 #     return torch.matmul(invdegree, torch.matmul(adj, invdegree))
 
 #we mustn't use the D[D == 0] = 1, as it destroys the row stochasticy
-
+'''
+old way, on CPU
 def adjacency(A):
     # Adjacency Matrix A
     return graph_util.csr_matrix_to_torch_tensor(A)
@@ -190,3 +276,5 @@ def sim_rank(A, C = 0.8, acc = 0.1):
     L = eigvectors @ S_new @ torch.inverse(eigvectors)
     
     return L
+    
+'''
