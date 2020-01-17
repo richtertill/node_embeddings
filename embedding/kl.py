@@ -43,6 +43,7 @@ class KL(StaticGraphEmbedding):
         # input
         self._num_nodes = adj_mat.shape[0]
         self._num_edges = adj_mat.sum()
+        self._Adj = adj_mat
 
         # Model parameters
        
@@ -74,8 +75,8 @@ class KL(StaticGraphEmbedding):
     def get_summary_writer(self):
         return self._writer
 
-    def learn_embedding(self, A, num_epoch):
-        
+    def learn_embedding(self, num_epoch):
+        A = self._Adj
         num_nodes = A.shape[0]
         num_edges = A.sum()
         

@@ -26,7 +26,7 @@ def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
 def compute_embedding(embedding_method, AdjMat, eval_epochs):
     embedding_method.reset_epoch()
     embedding_method.setup_model_input(AdjMat)
-    emb = embedding_method.learn_embedding(AdjMat,eval_epochs)
+    emb = embedding_method.learn_embedding(eval_epochs)
     return emb
 
 
