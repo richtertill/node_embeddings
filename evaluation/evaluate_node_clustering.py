@@ -30,9 +30,9 @@ def compute_embedding(embedding_method, AdjMat, eval_epochs):
 
 
 def set_dict(root_dict, embedding_method):
-    summary_folder_extended_round = root_dict + str(1)
-    pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True)
-    embedding_method.set_summary_folder(summary_folder_extended_round)
+    #summary_folder_extended_round = root_dict + str(1)
+    #pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True)
+    embedding_method.set_summary_folder(root_dict)
 
 
 def plot_boxplot(data, plot_boxplot=True):
@@ -50,16 +50,11 @@ def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
         set_dict(result_folder, embedding_method)
         emb = compute_embedding(embedding_method, AdjMat, train_epochs)
         norm_MI_score = []
-    
-        # emb = compute_embedding(embedding_method, AdjMat, eval_epochs)
-
         for round_id in range(rounds):
             norm_mutual_info = evaluateNodeClustering(
                 Y, emb, round_id)
             norm_MI_score.append(norm_mutual_info)
-            writer = embedding_method.get_summary_writer()
-            writer.add_scalar('Node Clustering/Norm_MI', norm_mutual_info, round_id)
-
+     
         mean_norm_MI_score = np.mean(np.array(norm_MI_score))
         file.write(f'Normalized_mutual_information: {mean_norm_MI_score}\n')
         # plot_boxplot(norm_MI_score, plot_boxplot=True)
