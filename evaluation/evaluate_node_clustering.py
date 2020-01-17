@@ -19,13 +19,14 @@ def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
     model = KMeans(n_clusters=n_cluster, random_state=round_id, init='k-means++').fit(emb)
     labels = model.labels_
     norm_mutual_info = normalized_mutual_info_score(labels_true, labels)
+    print (normalized_mutual_info_score(labels_true, labels)
     return norm_mutual_info
 
 
 def compute_embedding(embedding_method, AdjMat, eval_epochs):
     embedding_method.reset_epoch()
     embedding_method.setup_model_input(AdjMat)
-    emb = embedding_method.learn_embedding(eval_epochs)
+    emb = embedding_method.learn_embedding(AdjMat,eval_epochs)
     return emb
 
 
