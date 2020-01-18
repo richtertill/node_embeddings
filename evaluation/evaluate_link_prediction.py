@@ -11,11 +11,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 
 
-def evaluateLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
+def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
 
 	# split edges of graph into set of train and test edges
 	# val_ones and val_zeros is always empty
-	train_ones, val_ones, val_zeros, test_ones, test_zeros = gust.train_val_test_split_adjacency(AdjMat, p_val=0, p_test=1-train_ratio, random_state=0, neg_mul=1,
+	train_ones, val_ones, val_zeros, test_ones, test_zeros = gust.train_val_test_split_adjacency(AdjMat, p_val=0, p_test=1-train_ratio, random_state= round_id, neg_mul=1,
         every_node=True, connected=False, undirected=True,use_edge_cover=True, set_ops=True, asserts=False)
 
 	# create set of train edges which are not in the train graph nor in the test graph
@@ -112,7 +112,7 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
 			embedding_method.set_summary_folder(summary_folder_extended_round)
 			embedding_method.reset_epoch()
-			AUC = evaluateLinkPrediction(AdjMat, embedding_method,
+			AUC = evaluateLinkPrediction(AdjMat, embedding_method, round_id,
 											train_ratio,train_epochs, eval_epochs, edge_emb_method,
 											undirected=undirected)
 			auc_scores.append(AUC)
