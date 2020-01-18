@@ -41,7 +41,7 @@ def laplacian( adj_np):
 #Transition P=D^−1A
 def compute_transition(adj_np):
     adj_gpu=torch.FloatTensor(adj_np.toarray()).cuda()
-    degree= compute_degree_matrix(adj_np)
+    degree= compute_degree_matrix(adj_np).float()
     inv_degree=torch.diagflat(1/degree)
     P = inv_degree.mm(adj_gpu) 
     return P

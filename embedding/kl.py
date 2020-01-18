@@ -107,7 +107,7 @@ class KL(StaticGraphEmbedding):
             return degree
     
         def compute_transition(adj_gpu,adj_np):
-            degree= compute_degree_matrix(adj_np)
+            degree= compute_degree_matrix(adj_np).float()
             inv_degree=torch.diagflat(1/degree)
             P = inv_degree.mm(adj_gpu) 
             return P
