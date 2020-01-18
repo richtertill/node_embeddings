@@ -11,7 +11,7 @@ import torch.distributions as dist
 from torch.utils.tensorboard import SummaryWriter
 from time import time
 from .static_graph_embedding import StaticGraphEmbedding
-from .similarity_measure import adjacency, laplacian, sym_normalized_laplacian, NetMF #sum_power_tran, sim_rank ppr
+from .similarity_measure import adjacency, laplacian, sym_normalized_laplacian, NetMF, compute_transition, compute_ppr ,compute_sum_power_tran#sum_power_tran, sim_rank ppr
 from utils import graph_util
 from gust import preprocessing as GustPreprosessing
 
@@ -55,14 +55,14 @@ class MatrixFactorization(StaticGraphEmbedding):
             self._Mat = laplacian(adj_mat)
         if (self._similarity_measure=="sym_normalized_laplacian"):
             self._Mat = sym_normalized_laplacian(adj_mat)
-        # if (self._similarity_measure=="transition"):
-        #     self._Mat = transition(adj_mat)
+        if (self._similarity_measure=="transition"):
+            self._Mat = compute_transition(adj_mat)
         if (self._similarity_measure=="NetMF"):
             self._Mat = NetMF(adj_mat)
-        # if (self._similarity_measure=="ppr"):
-        #     self._Mat = ppr(adj_mat)
-        # if (self._similarity_measure=="sum_power_tran"):
-        #     self._Mat = sum_power_tran(adj_mat)
+        if (self._similarity_measure=="ppr"):
+             self._Mat = compute_ppr(adj_mat)
+        if (self._similarity_measure=="sum_power_tran"):
+             self._Mat = compute_sum_power_tran(adj_mat)
         # if (self._similarity_measure=="sim_rank"):
         #     self._Mat = sim_rank(adj_mat)
                     
