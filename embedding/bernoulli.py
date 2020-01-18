@@ -34,10 +34,11 @@ class Bernoulli(StaticGraphEmbedding):
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
         self._display_step = display_step
+        self._similarity_measure=decoder
         self._epoch_begin = 0
         self._epoch_end = 0
         self._setup_done = False
-        self._similarity_measure = "adjacency"
+       
         self._W_enabled = W_enabled
 
     def setup_model_input(self, adj_mat):
