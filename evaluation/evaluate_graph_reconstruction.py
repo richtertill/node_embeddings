@@ -69,9 +69,7 @@ def expGR(digraph, graph_embedding,
         )
         n_nodes[round_id] = sampled_digraph.number_of_nodes()
         n_edges[round_id] = sampled_digraph.number_of_edges()
-        print('\t\tRound: %d, n_nodes: %d, n_edges:%d\n' % (round_id,
-                                                            n_nodes[round_id],
-                                                            n_edges[round_id]))
+                                                   
         sampled_X = X[node_l]
         MAP[round_id], prec_curv[round_id], err[round_id], err_b[round_id] = \
             evaluateStaticGraphReconstruction(sampled_digraph, graph_embedding,

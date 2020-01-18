@@ -107,7 +107,6 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 
 		summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
 		for round_id in range(rounds):
-			print(f'\nRound: {round_id+1}\n')
 			summary_folder_extended_round = summary_folder_extended + str(round_id+1)
 			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
 			embedding_method.set_summary_folder(summary_folder_extended_round)
