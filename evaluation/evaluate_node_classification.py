@@ -73,7 +73,7 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
        
         file.write(f'Accuracy: {mean_acc}\n')
         
-        #return acc_score
+        return acc_score
 
 
         
