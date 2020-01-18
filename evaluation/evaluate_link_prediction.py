@@ -35,7 +35,7 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 
 	writer = embedding_method.get_summary_writer()
 	embedding_method.setup_model_input(A_train_nodes)
-	emb = embedding_method.learn_embedding(eval_epochs)
+	emb = embedding_method.learn_embedding(train_epochs)
 	#for i in range(1,2#int(train_epochs/eval_epochs)+1):
 
 	
