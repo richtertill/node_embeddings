@@ -104,7 +104,8 @@ class Bernoulli(StaticGraphEmbedding):
 
         
       
-        def compute_loss_sig(adj, emb, b=0.0): 
+        def compute_loss_sig(A, emb, b=0.0): 
+            adj = torch.FloatTensor(A.toarray()).cuda()
             logits = emb @ emb.t() + b.cuda()
             loss = F.binary_cross_entropy_with_logits(logits, adj, reduction='none')
             loss[np.diag_indices(adj.shape[0])] = 0.0
@@ -115,7 +116,7 @@ class Bernoulli(StaticGraphEmbedding):
             eps=1e-5
             N = adj.shape[0]
             d=64
-            e1, e2 = adj.nonzero()
+            e1, e2= adj.nonzero()
             pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
             neg_term = torch.log(-torch.expm1(-pdist) + 1e-5)
             neg_term[np.diag_indices(N)] = 0.0
@@ -133,11 +134,11 @@ class Bernoulli(StaticGraphEmbedding):
         if(self._decoder == "exponential"):
             compute_loss = compute_loss_exponential
         
-        adj = torch.FloatTensor(A.toarray()).cuda()
+        
         
         for epoch in range(self._epoch_begin, self._epoch_end):
             opt.zero_grad()
-            loss = compute_loss(adj,emb.cuda(), b)
+            loss = compute_loss(A ,emb.cuda(), b)
             loss.backward()
             opt.step()
     # Training loss is printed every display_step epochs
