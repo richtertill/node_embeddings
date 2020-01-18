@@ -36,7 +36,7 @@ def evaluateLinkPrediction(AdjMat,embedding_method,train_ratio, train_epochs, ev
 	writer = embedding_method.get_summary_writer()
 	embedding_method.setup_model_input(A_train_nodes)
 
-	for i in range(1,int(train_epochs/eval_epochs)):
+	for i in range(1,int(train_epochs/eval_epochs)+1):
 
 		emb = embedding_method.learn_embedding(eval_epochs)
 
@@ -97,7 +97,7 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
           result_folder, train_ratio,edge_emb_method,train_epochs, eval_epochs,
 		  undirected=True):
 
-	print('\tLink prediction evaluation has started...')
+	print('\nLink prediction evaluation has started...\n')
 
 	pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
 	with open(result_folder + '/link_prediction_summary.txt', 'a') as file:
@@ -107,6 +107,7 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 
 		summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
 		for round_id in range(rounds):
+			print(f'\nRound: {round_id+1}\n')
 			summary_folder_extended_round = summary_folder_extended + str(round_id+1)
 			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
 			embedding_method.set_summary_folder(summary_folder_extended_round)
@@ -116,7 +117,10 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 											undirected=undirected)
 
 		mean_auc_score = np.mean(np.array(auc_scores))
-		file.write(f'{mean_auc_score}\n' )
+		print(f'\n=> mean auc score: {mean_auc_score}')
+		for score in auc_scores:
+			file.write(f'{score}  ')
+		file.write("\n")
 
 def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":

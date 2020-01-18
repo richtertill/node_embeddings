@@ -44,7 +44,7 @@ def plot_boxplot(data, plot_boxplot=True):
 def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
                         result_folder, train_epochs, eval_epochs,
                         undirected=True):
-    print('\tNode clustering evaluation has started...')
+    print('\nNode clustering evaluation has started...\n')
     pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
     with open(result_folder + '/node_clustering_summary.txt', 'a') as file:
         file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: \n')

@@ -13,7 +13,7 @@ sys.path.append(os.path.realpath(__file__))
 
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
-from .decoder import sigmoid, gaussian, exponential
+# from .decoder import sigmoid, gaussian, exponential
 from .similarity_measure import adjacency
 
 
@@ -21,7 +21,7 @@ from .similarity_measure import adjacency
 class Bernoulli(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, decoder='sigmoid', W_enabled=False,
-                 learning_rate=1e-2, weight_decay=1e-7, display_step=250):
+                 learning_rate=1e-2, weight_decay=1e-7, display_step=25):
         ''' Initialize the Bernoulli class
 
         Args:
@@ -86,7 +86,7 @@ class Bernoulli(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._W_enabled}'
+        return f'{self._method_name}_{self._decoder}_{self._similarity_measure}_{self._embedding_dim}_{self._W_enabled}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -107,6 +107,10 @@ class Bernoulli(StaticGraphEmbedding):
         if self._setup_done == False:
             raise ValueError('Model input parameters not defined.')
 
+        if self._epoch_begin != 0:
+            self._epoch_begin = self._epoch_end +1
+        else:
+            self._epoch_begin = self._epoch_end
         self._epoch_end += num_epoch
 
 
@@ -153,21 +157,18 @@ class Bernoulli(StaticGraphEmbedding):
         
         #### Learning ####
         # Training loop
-        for epoch in range(num_epoch):
+        for epoch in range(self._epoch_begin, self._epoch_end+1):
             self._opt.zero_grad()
             loss = compute_loss(self._emb, self._W)
             loss.backward()
             self._opt.step()
             # Training loss is printed every display_step epochs
-            if epoch % 50 == 0 and self._summary_path:
+            if epoch % self._display_step == 0 and self._summary_path:
                 print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
 
         # Put the embedding back on the CPU
         emb_np = self._emb.cpu().detach().numpy()
-
-        # set epoch_begin to last epoch of training to ensure that loggin on tensorflow works correctly
-        self._epoch_begin = self._epoch_end
 
         # Save the embedding
         #         np.savetxt('embedding_' + self._savefilesuffix + '.txt', emb_np)

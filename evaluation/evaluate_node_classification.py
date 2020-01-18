@@ -14,19 +14,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-# class TopKRanker(oneVr):
-#     def predict(self, X, top_k_list):
-#         assert X.shape[0] == len(top_k_list)
-#         probs = np.asarray(super(TopKRanker, self).predict_proba(X))
-#         prediction = np.zeros((X.shape[0], self.classes_.shape[0]))
-#         for i, k in enumerate(top_k_list):
-#             probs_ = probs[i, :]
-#             labels = self.classes_[probs_.argsort()[-int(k):]].tolist()
-#             for label in labels:
-#                 prediction[i, label] = 1
-#         return prediction
-
-def evaluateNodeClassification( emb, Y, embedding_method,round_id, train_ratio, undirected=True):
+def evaluateNodeClassification( emb,Y,embedding_method,round_id,train_ratio, undirected=True):
     
     writer = embedding_method.get_summary_writer()
     train_X, test_X, train_y, test_y = train_test_split(emb, Y, random_state = round_id,test_size =1-train_ratio)
@@ -37,7 +25,7 @@ def evaluateNodeClassification( emb, Y, embedding_method,round_id, train_ratio, 
     micro = f1_score(test_y, test_preds, average='micro')
     macro = f1_score(test_y, test_preds, average='macro')
 
-        # write to tensorboard
+    # write to tensorboard
     writer.add_scalar('Node Classification/F1-micro', micro, round_id)
     writer.add_scalar('Node Classification/F1-macro', macro, round_id)
 
@@ -47,7 +35,7 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
           result_folder, train_ratio,train_epochs,eval_epochs,
           undirected=True):
 
-    print('\tNode classification evaluation has started...')
+    print('\nNode classification evaluation has started...\n')
 
     pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
     with open(result_folder + '/node_classification_summary.txt', 'a') as file:
@@ -57,25 +45,37 @@ def expNC(AdjMat,Y, dataset_name, embedding_method, rounds,
         macros = [None] * rounds
         summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
         embedding_method.setup_model_input(AdjMat)
-        for i in range(1,50):
+        writer = embedding_method.get_summary_writer()
+        embedding_method.reset_epoch()
+        for i in range(1,int(train_epochs/eval_epochs)+1):
             emb = embedding_method.learn_embedding(eval_epochs)
         for round_id in range(rounds):
-            
             summary_folder_extended_round = summary_folder_extended + str(round_id+1)
             pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
             embedding_method.set_summary_folder(summary_folder_extended_round)
-            embedding_method.reset_epoch()
             micros[round_id], macros[round_id] = evaluateNodeClassification(
                     emb, Y, embedding_method, round_id, train_ratio)
         
+        print(f'\n{rounds} rounds complete: \n')
 
         mean_f1_micro_score = np.mean(np.array(micros))
         mean_f1_macro_score = np.mean(np.array(macros))
 
-        file.write(f'F1-micro: {mean_f1_micro_score}\n' )
-        file.write(f'F1-macro: {mean_f1_macro_score}\n' )
+        print(f'mean f1_micro score: {mean_f1_micro_score}')
+        print(f'mean f1_macro score: {mean_f1_macro_score}')
+        
+        file.write(f'F1-micro: ')
+        for micro_score in micros:
+            file.write(f'{micro_score}  ')
+        file.write("\n")
+
+        file.write(f'F1-macro: ')
+        for macro_score in macros:
+            file.write(f'{macro_score}  ')
+        file.write("\n")
 
 
+        
 
 
 

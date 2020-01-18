@@ -14,13 +14,13 @@ sys.path.append(os.path.realpath(__file__))
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
-from .decoder import sigmoid, gaussian, exponential
-from .similarity_measure import adjacency, laplacian, transition, sym_normalized_laplacian, NetMF, ppr, sum_power_tran, sim_rank
+# from .decoder import sigmoid, gaussian, exponential
+# from .similarity_measure import adjacency, laplacian, sym_normalized_laplacian, NetMF, ppr, sum_power_tran, sim_rank
 
 class KL(StaticGraphEmbedding):
 
     def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency", W_enabled=False,
-                 learning_rate=1e-2, weight_decay=1e-7, display_step=10):
+                 learning_rate=1e-2, weight_decay=1e-7, display_step=25):
         ''' Initialize the Bernoulli class
 
         Args:
@@ -76,6 +76,13 @@ class KL(StaticGraphEmbedding):
         return self._writer
 
     def learn_embedding(self, num_epoch):
+
+        if self._epoch_begin != 0:
+            self._epoch_begin = self._epoch_end +1
+        else:
+            self._epoch_begin = self._epoch_end
+        self._epoch_end += num_epoch
+
         A = self._Adj
         num_nodes = A.shape[0]
         num_edges = A.sum()
@@ -104,8 +111,6 @@ class KL(StaticGraphEmbedding):
             inv_degree=torch.diagflat(1/degree)
             P = inv_degree.mm(adj_gpu) 
             return P
-
-
 
         def compute_ppr(adj_gpu, adj_np, dim, alpha = 0.1 ):
             term_2 = (1-alpha)*compute_transition(adj_gpu,adj_np)
@@ -136,27 +141,21 @@ class KL(StaticGraphEmbedding):
             loss = -(sim*torch.log( 10e-9+ F.softmax(emb.mm(emb.t()),dim=1,dtype=torch.float)))
             return loss.mean()
         
-        max_epochs = num_epoch
-        display_step = 50
-
-
         compute_loss = compute_loss_KL
 
-        for epoch in range(max_epochs):
+        for epoch in range(self._epoch_begin, self._epoch_end):
             opt.zero_grad()
             loss = compute_loss(A, emb.cuda(),self._similarity_measure, b)
             loss.backward()
             opt.step()
     # Training loss is printed every display_step epochs
-            if epoch % display_step == 0:
+            if epoch % self._display_step == 0 and self._summary_path:
                 print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+                self._writer.add_scalar('Loss/train', loss.item(), epoch)
         
 
    
         # Put the embedding back on the CPU
         emb_np = emb.cpu().detach().numpy()
-
-        # set epoch_begin to last epoch of training to ensure that loggin on tensorflow works correctly
-        self._epoch_begin = self._epoch_end
 
         return emb_np
