@@ -136,7 +136,9 @@ class Bernoulli(StaticGraphEmbedding):
             compute_loss = compute_loss_exponential
         
         
-        
+        diff=  torch.FloatTensor([1e-7]).item()
+        prev= torch.FloatTensor([1e-3]).item()
+
         for epoch in range(self._epoch_begin, self._epoch_end):
             opt.zero_grad()
             loss = compute_loss(A ,emb.cuda(), b)
@@ -146,8 +148,14 @@ class Bernoulli(StaticGraphEmbedding):
             if epoch % self._display_step == 0 and self._summary_path:
                 print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
                 self._writer.add_scalar('Loss/train', loss.item(), epoch)
-        
-
+                
+            now= loss.item()    
+            if (abs(prev-now) < diff):
+                print(f'Epoch {epoch:4d}, loss = {loss.item():.5f}')
+                break
+            else:
+                prev=loss.item()
+             
    
         # Put the embedding back on the CPU
         emb_np = emb.cpu().detach().numpy()
