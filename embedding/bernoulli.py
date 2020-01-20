@@ -124,6 +124,29 @@ class Bernoulli(StaticGraphEmbedding):
             pos_term = -pdist[e1, e2]
             neg_term[e1, e2] = 0.0
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
+        
+        def compute_loss_dist2(A, emb, b=0.0):
+            adj = torch.FloatTensor(A.toarray()).cuda()
+            eps=1e-5
+            pdist = ((emb[:, None] - emb[None, :]).pow(2.0).sum(-1) + eps).sqrt()
+            logits = 10*(1-pdist).cuda()
+            loss = F.binary_cross_entropy_with_logits(logits, adj, reduction='none')
+            loss[np.diag_indices(adj.shape[0])] = 0.0
+            return loss.mean()
+
+        def compute_loss_exponential(adj, emb, b=0):
+            eps=1e-5
+            N = adj.shape[0]
+            d=64
+            e1, e2= adj.nonzero()
+            emb_abs = torch.FloatTensor.abs(emb)
+            dist = -torch.matmul(emb_abs,emb_abs.T)
+            neg_term=dist
+            neg_term[np.diag_indices(emb.shape[0])]=0.0
+            expdist=torch.exp(dist)
+            logdist=torch.log(1-expdist+eps)
+            pos_term = logdist[e1,e2]
+            return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
 
 
 
@@ -134,6 +157,8 @@ class Bernoulli(StaticGraphEmbedding):
             compute_loss = compute_loss_gaussian
         if(self._decoder == "exponential"):
             compute_loss = compute_loss_exponential
+        if(self._decoder == "dist2"):
+            compute_loss = compute_loss_dist2
         
         
         diff=  torch.FloatTensor([1e-7]).item()
