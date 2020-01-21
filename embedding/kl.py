@@ -142,7 +142,7 @@ class KL(StaticGraphEmbedding):
             return loss.mean()
         
         compute_loss = compute_loss_KL
-
+        self._epoch_end = 1250
         for epoch in range(self._epoch_begin, self._epoch_end):
             opt.zero_grad()
             loss = compute_loss(A, emb.cuda(),self._similarity_measure, b)

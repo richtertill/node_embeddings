@@ -8,7 +8,7 @@ except:
     import pickle
 
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
 from sklearn.metrics import normalized_mutual_info_score
 
 import seaborn as sns
@@ -16,8 +16,8 @@ import seaborn as sns
 
 def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
     n_cluster = len(set(labels_true))
-    model = KMeans(n_clusters=n_cluster, random_state=round_id, init='k-means++').fit(emb)
-    labels = model.labels_
+    model = GaussianMixture(n_components=n_cluster,random_state=round_id).fit(emb)
+    labels = model.predict(emb)
     norm_mutual_info = normalized_mutual_info_score(labels_true, labels)
     print (normalized_mutual_info_score(labels_true, labels))
     return norm_mutual_info
