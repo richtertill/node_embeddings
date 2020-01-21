@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 def evaluateNodeClassification( emb,Y,embedding_method,round_id,train_ratio, undirected=True):
     
    
-    train_X, test_X, train_y, test_y = train_test_split(emb, Y, random_state = round_id,test_size =1-train_ratio)
+    train_X, test_X, train_y, test_y = train_test_split(emb, Y, random_state = round_id,test_size =1-train_ratio,stratify=Y)
     rf = RandomForestClassifier(random_state=round_id)
     rf.fit(train_X, train_y)
     test_preds = rf.predict(test_X)
