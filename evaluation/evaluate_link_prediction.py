@@ -54,7 +54,7 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	for nodes in train_zeros:
 		node_emb1 = emb[nodes[0]]
 		node_emb2 = emb[nodes[1]]
-		edge_emb_one = create_edge_embedding(node_emb1, node_emb2, method="average")
+		edge_emb_one = create_edge_embedding(node_emb1, node_emb2, method=edge_emb_method)
 		train_X.append(edge_emb_one)
 		train_y.append(0)
 
@@ -64,14 +64,14 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	for nodes in test_ones:
 		node_emb1 = emb[nodes[0]]
 		node_emb2 = emb[nodes[1]]
-		edge_emb_one = create_edge_embedding(node_emb1, node_emb2, method="average")
+		edge_emb_one = create_edge_embedding(node_emb1, node_emb2, method=edge_emb_method)
 		test_X.append(edge_emb_one)
 		test_y.append(1)
 			
 	for nodes in test_zeros:
 		node_emb1 = emb[nodes[0]]
 		node_emb2 = emb[nodes[1]]
-		edge_emb_zero = create_edge_embedding(node_emb1, node_emb2, method="average")
+		edge_emb_zero = create_edge_embedding(node_emb1, node_emb2, method=edge_emb_method)
 		test_X.append(edge_emb_zero)
 		test_y.append(0)
 
@@ -81,10 +81,15 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	test_X = np.array(test_X)
 	test_y = np.array(test_y)
 
-	lg = LogisticRegression()
-	lg.fit(train_X, train_y)
-	test_preds = lg.predict_proba(test_X)
-	auc_score = roc_auc_score(test_y, test_preds[:,1])
+	### NO LOGISTIC REGRESSION 
+	# lg = LogisticRegression()
+	# lg.fit(train_X, train_y)
+	# test_preds = lg.predict_proba(test_X)
+	#auc_score = roc_auc_score(test_y, test_preds[:,1])
+	
+	test_preds = np.array([1 if edge>=0  else 0 for edge in test_X])
+	auc_score = roc_auc_score(test_y, test_preds)
+	
 
 	# write to tensorboard
 	writer.add_scalar('Link prediction/AUC score', auc_score, i*eval_epochs)
@@ -127,3 +132,5 @@ def expLP(AdjMat, dataset_name, embedding_method, rounds,
 def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":
 		return (emb1+emb2)/2
+	if method=="dot_product":
+		return np.dot(emb1,emb2)
