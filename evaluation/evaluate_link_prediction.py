@@ -82,13 +82,13 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	test_y = np.array(test_y)
 
 	### NO LOGISTIC REGRESSION 
-	# lg = LogisticRegression()
-	# lg.fit(train_X, train_y)
-	# test_preds = lg.predict_proba(test_X)
-	#auc_score = roc_auc_score(test_y, test_preds[:,1])
+	lg = LogisticRegression()
+	lg.fit(train_X, train_y)
+	test_preds = lg.predict_proba(test_X)
+	auc_score = roc_auc_score(test_y, test_preds[:,1])
 	
-	test_preds = np.array([1 if edge>=0  else 0 for edge in test_X])
-	auc_score = roc_auc_score(test_y, test_preds)
+	#test_preds = np.array([1 if edge>=0  else 0 for edge in test_X])
+	#auc_score = roc_auc_score(test_y, test_preds)
 	
 
 	# write to tensorboard
@@ -133,4 +133,4 @@ def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":
 		return (emb1+emb2)/2
 	if method=="dot_product":
-		return np.dot(np.transpose(emb1),emb2)
+		return np.dot(emb1,emb2)

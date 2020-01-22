@@ -16,8 +16,8 @@ import seaborn as sns
 
 def evaluateNodeClustering(labels_true, emb, round_id, undirected=True):
     n_cluster = len(set(labels_true))
-    model = GaussianMixture(n_components=n_cluster,random_state=round_id).fit(emb)
-    labels = model.predict(emb)
+    model = KMeans(n_clusters=n_cluster, random_state=round_id, init='k-means++').fit(emb)
+    labels = model.labels_
     norm_mutual_info = normalized_mutual_info_score(labels_true, labels)
     print (normalized_mutual_info_score(labels_true, labels))
     return norm_mutual_info
