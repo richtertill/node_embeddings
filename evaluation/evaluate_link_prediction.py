@@ -133,4 +133,4 @@ def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":
 		return (emb1+emb2)/2
 	if method=="dot_product":
-		return np.dot(emb1,emb2)
+		return np.dot(np.transpose(emb1),emb2)
