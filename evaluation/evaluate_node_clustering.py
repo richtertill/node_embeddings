@@ -8,7 +8,7 @@ except:
     import pickle
 
 import numpy as np
-from sklearn.mixture import GaussianMixture
+from sklearn.cluster import KMeans
 from sklearn.metrics import normalized_mutual_info_score
 
 import seaborn as sns
