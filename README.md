@@ -1,1 +1,1 @@
-# Node Embeddings Pipeline
+# Structure

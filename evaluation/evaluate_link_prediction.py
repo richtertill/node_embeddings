@@ -1,18 +1,17 @@
 import datetime
 import numpy as np
+import pandas as pd
 import pathlib
-
-import gust
-
-# import utils
-from utils import graph_util
-
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
+import gust
+from utils import graph_util
 
 
 def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
+	'''
 
+	'''
 	# split edges of graph into set of train and test edges
 	# val_ones and val_zeros is always empty
 	train_ones, val_ones, val_zeros, test_ones, test_zeros = gust.train_val_test_split_adjacency(AdjMat, p_val=0, p_test=1-train_ratio, random_state= round_id, neg_mul=1,
@@ -26,21 +25,14 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 			train_zeros.append((i, j))
 	train_zeros = np.array(train_zeros) 
 
-
-	# TODO: save embeddings
-	#np.save('ber_link_prediction_cora_embedding.npy',emb)
-
 	# construct a new graph which only consists of training edges
 	A_train_nodes = gust.edges_to_sparse(train_ones,AdjMat.shape[0])
 
 	writer = embedding_method.get_summary_writer()
 	embedding_method.setup_model_input(A_train_nodes)
 	emb = embedding_method.learn_embedding(train_epochs)
-	#for i in range(1,2#int(train_epochs/eval_epochs)+1):
 
-	
-
-		# Create edge embeddings for train_ones, train_zeros, test_ones, test_zeros
+	# Create edge embeddings for train_ones, train_zeros, test_ones, test_zeros
 	train_X = []
 	train_y = []
 
@@ -90,7 +82,6 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	#test_preds = np.array([1 if edge>=0  else 0 for edge in test_X])
 	#auc_score = roc_auc_score(test_y, test_preds)
 	
-
 	# write to tensorboard
 	writer.add_scalar('Link prediction/AUC score', auc_score, i*eval_epochs)
 
@@ -98,36 +89,26 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	return auc_score
 
 
-def expLP(AdjMat, dataset_name, embedding_method, rounds,
-          result_folder, train_ratio,edge_emb_method,train_epochs, eval_epochs,
-		  undirected=True):
+def expLP(AdjMat,dataset_name,embedding_method,rounds,result_folder,train_ratio,edge_emb_method,train_epochs,eval_epochs,undirected=True):
 
 	print('\nLink prediction evaluation has started...\n')
 
+	df = pd.read_csv(f'{result_folder}/link_prediction_results.csv')
+
 	pathlib.Path(result_folder).mkdir(parents=True, exist_ok=True)
-	with open(result_folder + '/link_prediction_summary.txt', 'a') as file:
-		file.write(f'{dataset_name} & {embedding_method.get_method_summary()}: ')
+	summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
+	for round_id in range(rounds):
+		summary_folder_extended_round = summary_folder_extended + str(round_id+1)
+		pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
+		embedding_method.set_summary_folder(summary_folder_extended_round)
+		embedding_method.reset_epoch()
+		auc_score = evaluateLinkPrediction(AdjMat, embedding_method, round_id,
+										train_ratio,train_epochs, eval_epochs, edge_emb_method,
+										undirected=undirected)
 
-		auc_scores = []
-
-		summary_folder_extended = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
-		for round_id in range(rounds):
-			summary_folder_extended_round = summary_folder_extended + str(round_id+1)
-			pathlib.Path(summary_folder_extended_round).mkdir(parents=True, exist_ok=True) 
-			embedding_method.set_summary_folder(summary_folder_extended_round)
-			embedding_method.reset_epoch()
-			AUC = evaluateLinkPrediction(AdjMat, embedding_method, round_id,
-											train_ratio,train_epochs, eval_epochs, edge_emb_method,
-											undirected=undirected)
-			auc_scores.append(AUC)
-  
-
-		mean_auc_score = np.mean(np.array(auc_scores))
-		print(f'\n=> mean auc score: {mean_auc_score}')
-		for score in auc_scores:
-			file.write(f'{score}  ')
-		file.write("\n")
-		return auc_scores
+		result_dict = {"embedding_method": embedding_method.get_method_summary(), "dataset": dataset_name, "run_number": round_id+1, "auc_score": auc_score}
+		df = df.append(result_dict, ignore_index=True)
+	df.to_csv(f'{result_folder}/link_prediction_results.csv', index=False)
 
 def create_edge_embedding(emb1, emb2, method="average"):
 	if method=="average":

@@ -59,7 +59,7 @@ class KL(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._similarity_measure}_{self._W_enabled}'
+        return f'{self._method_name}_{self._embedding_dim}_{self._decoder}_{self._similarity_measure}'
 
     def reset_epoch(self):
         self._epoch_begin = 0

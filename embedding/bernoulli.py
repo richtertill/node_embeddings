@@ -20,7 +20,7 @@ from .similarity_measure import adjacency
 
 class Bernoulli(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, decoder='sigmoid', W_enabled=False,
+    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
                  learning_rate=1e-2, weight_decay=1e-7, display_step=25):
         ''' Initialize the Bernoulli class
 
@@ -34,12 +34,12 @@ class Bernoulli(StaticGraphEmbedding):
         self._learning_rate = learning_rate
         self._weight_decay = weight_decay
         self._display_step = display_step
-        self._similarity_measure=decoder
+        self._similarity_measure = similarity_measure
         self._epoch_begin = 0
         self._epoch_end = 0
         self._setup_done = False
        
-        self._W_enabled = W_enabled
+        # self._W_enabled = W_enabled
 
     def setup_model_input(self, adj_mat):
         # input
@@ -60,7 +60,7 @@ class Bernoulli(StaticGraphEmbedding):
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._decoder}_{self._similarity_measure}_{self._embedding_dim}_{self._W_enabled}'
+        return f'{self._method_name}_{self._decoder}_{self._similarity_measure}_{self._embedding_dim}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -147,9 +147,6 @@ class Bernoulli(StaticGraphEmbedding):
             logdist=torch.log(1-expdist+eps)
             pos_term = logdist[e1,e2]
             return -(pos_term.sum() + neg_term.sum()) / emb.shape[0]**2
-
-
-
 
         if(self._decoder == "sigmoid"):
             compute_loss = compute_loss_sig
