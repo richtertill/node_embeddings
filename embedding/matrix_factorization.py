@@ -94,9 +94,10 @@ class MatrixFactorization(StaticGraphEmbedding):
         U,S,V = torch.svd(self._Mat)
 
         if(self._embedding_option==1):
-            self._emb = U[:,:self._embedding_dim]
+            V_trancated = V[:,:self._embedding_dim]
+            self._emb = torch.matmul(self._Mat, V_trancated)
         elif(self._embedding_option==2):
-            self._emb = torch.matmul(U,V)[:,:self._embedding_dim]
+            self._emb = torch.matmul(U,S[:,:self._embedding_dim])
 
         # Put the embedding back on the CPU
         emb_np = self._emb.cpu().detach().numpy()

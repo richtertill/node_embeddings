@@ -19,7 +19,7 @@ from utils import graph_util
 
 class KL(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency", W_enabled=False,
+    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
                  learning_rate=1e-2, weight_decay=1e-7, display_step=25):
         ''' Initialize the Bernoulli class
 
@@ -37,7 +37,6 @@ class KL(StaticGraphEmbedding):
         self._epoch_begin = 0
         self._epoch_end = 0
         self._setup_done = False
-        self._W_enabled = W_enabled
 
     def setup_model_input(self, adj_mat):
         # input
