@@ -18,37 +18,40 @@ from gust import preprocessing as GustPreprosessing
 
 class MatrixFactorization(StaticGraphEmbedding):
 
-    def __init__(self, embedding_dimension=64, similarity_measure="adjacency",  embedding_option=1):
+    def __init__(self, embedding_dimension=64, similarity_measure="adjacency"):
         '''
         Parameters
         ----------
         embedding_dimension
-            Number of elements in the embedding vector representing a node.
+            Number of elements in the embedding vector representing a node, default 64.
         sim_similarity_measure
-            One of {'adjacency','unnormalized_lapla', 'random_walk_lapla', 'symmetrized_lapla'}, default 'adjacency'.
-            Type of the Laplacian to compute.
-
-            adjacency = A
-            unnormalized_lapla = D - A
-            random_walk_lapla = I - D^{-1} A
-            symmetrized_lapla = I - D^{-1/2} A D^{-1/2}
-
-        Returns
-        -------
-        sp.csr_matrix
-            Laplacian matrix in the same format as A.
+            One of {'adjacency','laplacian', 'sym_normalized_laplacian', 'transition', 'NetMF', 'ppr', 'sum_power_tran'}, default 'adjacency'.
         '''
         self._embedding_dim = embedding_dimension
         self._similarity_measure = similarity_measure
         self._method_name = "Matrix_Fatorization"
-        self._embedding_option = embedding_option
-        self._setup_done = False
+        self._setup_done = False # model input is not setup yet 
 
     def setup_model_input(self, adj_mat, similarity_measure=None):
+        '''
+        Parameters
+        ----------
+        adj_mat
+            Adjacency matrix of the dataset to be tested in numpy sparse format.
+        sim_similarity_measure
+            One of {'adjacency','laplacian', 'sym_normalized_laplacian', 'transition', 'NetMF', 'ppr', 'sum_power_tran'}, default 'adjacency'.
+            If None, use similarity_measure from init
+
+        Return
+        ------
+        No explicit return value.
+        But class variable self._Mat is assigned the similarity measure in the form of a torch tensor.
+        '''
+
         if(similarity_measure):
             self._similarity_measure = similarity_measure
 
-        # transform matrix to correct type
+        # transform input matrix to correct similiarity measure
         if (self._similarity_measure=="adjacency"):
             self._Mat = adjacency(adj_mat)
         if (self._similarity_measure=="laplacian"):
@@ -63,16 +66,25 @@ class MatrixFactorization(StaticGraphEmbedding):
              self._Mat = compute_ppr(adj_mat)
         if (self._similarity_measure=="sum_power_tran"):
              self._Mat = compute_sum_power_tran(adj_mat)
-        # if (self._similarity_measure=="sim_rank"):
-        #     self._Mat = sim_rank(adj_mat)
-                    
+
         self._setup_done = True
 
     def get_method_name(self):
+        '''        
+        Return
+        ------
+        Name of embedding method as a string.
+        '''
         return self._method_name
 
     def get_method_summary(self):
-        return f'{self._method_name}_{self._similarity_measure}_{self._embedding_dim}_{self._embedding_option}'
+        '''        
+        Return
+        ------
+        Name of entire model description including the name of the embedding method, 
+        the name of the used similarity measure and the number of embedding dimensions.
+        '''
+        return f'{self._method_name}_{self._similarity_measure}_{self._embedding_dim}'
 
     def reset_epoch(self):
         self._epoch_begin = 0
@@ -86,24 +98,15 @@ class MatrixFactorization(StaticGraphEmbedding):
         return self._writer
 
     def learn_embedding(self, num_epochs):
-
         if self._setup_done == False:
             raise ValueError('Model input parameters not defined.')
 
-        #### Learning ####
         U,S,V = torch.svd(self._Mat)
 
-        if(self._embedding_option==1):
-            V_trancated = V[:,:self._embedding_dim]
-            self._emb = torch.matmul(self._Mat, V_trancated)
-        elif(self._embedding_option==2):
-            self._emb = torch.matmul(U,S[:,:self._embedding_dim])
+        V_trancated = V[:,:self._embedding_dim]
+        self._emb = torch.matmul(self._Mat, V_trancated)
 
         # Put the embedding back on the CPU
         emb_np = self._emb.cpu().detach().numpy()
-
-
-        # Save the embedding
-        #         np.savetxt('embedding_' + self._savefilesuffix + '.txt', emb_np)
 
         return emb_np

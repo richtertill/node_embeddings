@@ -42,8 +42,6 @@ class Bernoulli(StaticGraphEmbedding):
         # self._W_enabled = W_enabled
 
     def setup_model_input(self, adj_mat):
-        # input
-       
         self._num_nodes = adj_mat.shape[0]
         self._num_edges = adj_mat.sum()
         self._Adj = adj_mat
