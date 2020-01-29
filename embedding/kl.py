@@ -98,8 +98,8 @@ class KL(StaticGraphEmbedding):
         bias_init = np.log(edge_proba / (1 - edge_proba))
         b = nn.Parameter(torch.Tensor([bias_init]))
 
-# Regularize the embeddings but don't regularize the bias
-# The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
+
+        # The value of weight_decay has a significant effect on the performance of the model (don't set too high!)
         opt = torch.optim.Adam([
             {'params': [emb], 'weight_decay': 1e-7},
             {'params': [b]}],

@@ -10,25 +10,26 @@ from utils import graph_util
 
 def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
 	'''
+	This method performs one entire run for link prediction, i.e. split the data into a train and test set, learn the embeddings and evaluate them 
+	on link prediction.
+
 	Parameters
 	----------
 	AdjMat
-
+		Adjacency matrix or similiarity measure in general.
 	embedding_method
 		Reference to instance of an embedding model
-
 	round_id
-
-
+		Number which indicates the round number of the current experiment. During our final evaluation we did 10 rounds for every experiment.
+		This number is also used as a seed value for the random number generator.
 	train_ratio
-
+		Train test ratio.
 	train_epochs
-
+		Number of train epochs.
 	eval_epochs
-
+		Number after which epochs an evaluation is performed.
 	edge_emd_method
 		string wich determines which edge embedding method is used. One in {"avergae", "dot_product"}
-	
 	undirected
 		We always used undirected graphs, therefore didn't change the parameter. The parameter is used by the train_test_split function from the gust library.
 	'''
@@ -106,6 +107,34 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 
 
 def expLP(AdjMat,dataset_name,embedding_method,rounds,result_folder,train_ratio,edge_emb_method,train_epochs,eval_epochs,undirected=True):
+	'''
+	This method performs a link prediction EXPERIMENT, that's why it's called expLP. At the beginning a summary folder is created to store the results and tensorboard
+	train log files. Then link prediction is executed several times (number of rounds).
+
+	Parameters
+	----------
+	AdjMat
+		Adjacency matrix or similiarity measure in general.
+	dataset_name
+		Name of the dataset.
+	embedding_method
+		Reference to instance of an embedding model
+	rounds
+		Determines how often link prediction is executed with a new random initialization each time.
+	result_folder
+		Path to a folder to store results.
+	train_ratio
+		Train test ratio.
+	train_epochs
+		Number of train epochs.
+	eval_epochs
+		Number after which epochs an evaluation is performed.
+	edge_emd_method
+		string wich determines which edge embedding method is used. One in {"avergae", "dot_product"}
+	undirected
+		We always used undirected graphs, therefore didn't change the parameter. The parameter is used by the train_test_split function from the gust library.
+	'''
+
 
 	print('\nLink prediction evaluation has started...\n')
 
@@ -127,6 +156,9 @@ def expLP(AdjMat,dataset_name,embedding_method,rounds,result_folder,train_ratio,
 	df.to_csv(f'{result_folder}/link_prediction_results.csv', index=False)
 
 def create_edge_embedding(emb1, emb2, method="average"):
+	'''
+		This method created an edge embedding from two node embeddings.
+	'''
 	if method=="average":
 		return (emb1+emb2)/2
 	if method=="dot_product":

@@ -6,7 +6,8 @@ class StaticGraphEmbedding:
 	def __init__(self, d):
 		'''Initialize the Embedding class
 
-		Args:
+		Parameters
+		----------
 			d: dimension of embedding
 		'''
 		pass
@@ -14,7 +15,7 @@ class StaticGraphEmbedding:
 	def get_method_name(self):
 		''' Returns the name for the embedding method
 
-		Return: 
+		Return
 			The name of embedding
 		'''		
 		return ''
@@ -22,7 +23,8 @@ class StaticGraphEmbedding:
 	def set_summary_writer(self, path):
 		''' Creates a Tensorboard SummaryWriter instances
 		
-		Args:
+		Parameters
+		----------
 			path: path to folder where experiment results are stored
 		'''
 		pass
@@ -43,29 +45,15 @@ class StaticGraphEmbedding:
 		'''		
 		return ''
 
-	def learn_embedding(self, graph):
+	def learn_embedding(self, num_epochs):
 		'''Learning the graph embedding from the adjcency matrix.
 
-		Args:
-			graph: the graph to embed in networkx DiGraph format
+		Parameters
+		----------
+		num_epochs
+			The number of epochs a embedding should be trained for.
 		'''
 		pass
 
 	def setup_model_input(self, adj_mat):
-		pass
-
-	def get_embedding(self):
-		''' Returns the learnt embedding
-
-		Return: 
-			A numpy array of size #nodes * d
-		'''
-		pass
-	
-	def get_embedding_dim(self):
-		''' Returns the size of the embedding vector
-
-		Return: 
-			A number representing the size of the embedding vector
-		'''
 		pass
