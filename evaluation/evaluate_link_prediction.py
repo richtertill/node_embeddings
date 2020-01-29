@@ -10,7 +10,27 @@ from utils import graph_util
 
 def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train_epochs, eval_epochs,edge_emb_method,undirected=True):
 	'''
+	Parameters
+	----------
+	AdjMat
 
+	embedding_method
+		Reference to instance of an embedding model
+
+	round_id
+
+
+	train_ratio
+
+	train_epochs
+
+	eval_epochs
+
+	edge_emd_method
+		string wich determines which edge embedding method is used. One in {"avergae", "dot_product"}
+	
+	undirected
+		We always used undirected graphs, therefore didn't change the parameter. The parameter is used by the train_test_split function from the gust library.
 	'''
 	# split edges of graph into set of train and test edges
 	# val_ones and val_zeros is always empty
@@ -73,19 +93,15 @@ def evaluateLinkPrediction(AdjMat,embedding_method, round_id, train_ratio, train
 	test_X = np.array(test_X)
 	test_y = np.array(test_y)
 
-	### NO LOGISTIC REGRESSION 
+	### LOGISTIC REGRESSION 
 	lg = LogisticRegression()
 	lg.fit(train_X, train_y)
 	test_preds = lg.predict_proba(test_X)
 	auc_score = roc_auc_score(test_y, test_preds[:,1])
 	
-	#test_preds = np.array([1 if edge>=0  else 0 for edge in test_X])
-	#auc_score = roc_auc_score(test_y, test_preds)
-	
 	# write to tensorboard
 	writer.add_scalar('Link prediction/AUC score', auc_score, i*eval_epochs)
 
-# return final auc_score
 	return auc_score
 
 
