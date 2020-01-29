@@ -2,7 +2,7 @@
 
 ## What is the project about?
 This project compares different node embeddings with one shared evaluation protocol.
-More information can be found on the [wiki] (https://wiki.tum.de/display/mllab/Project+5%3A+Node+embedding+survey).
+More information can be found on the [wiki](https://wiki.tum.de/display/mllab/Project+5%3A+Node+embedding+survey).
 
 ## Architecture of the project
 
@@ -14,7 +14,7 @@ More information can be found on the [wiki] (https://wiki.tum.de/display/mllab/P
 - contains the implementation of 3 evaluation tasks
 
 /experiment
-- contains 2 jupyter notebooks two run and visualize experiments
+- contains 3 jupyter notebooks two run and visualize experiments
 
 /gust
 - contains a helper library developed by the chair to load and preprocess data
