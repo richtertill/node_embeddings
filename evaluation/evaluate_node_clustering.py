@@ -24,6 +24,8 @@ def exp_Node_Clustering(AdjMat, Y, dataset_name, embedding_method, rounds,
 
     embedding_method.reset_epoch()
     embedding_method.setup_model_input(AdjMat)
+    summary_folder = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
+    embedding_method.set_summary_folder(summary_folder)
     emb = embedding_method.learn_embedding(train_epochs)
 
     for round_id in range(rounds):

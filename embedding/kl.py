@@ -1,5 +1,7 @@
 import os
 import sys
+sys.path.append('./')
+sys.path.append(os.path.realpath(__file__))
 import numpy as np
 import torch
 import torch.nn as nn
@@ -7,25 +9,28 @@ import torch.nn.functional as F
 import torch.distributions as dist
 from torch.utils.tensorboard import SummaryWriter
 from time import time
-
-sys.path.append('./')
-sys.path.append(os.path.realpath(__file__))
-
 from .static_graph_embedding import StaticGraphEmbedding
 from utils import graph_util
 
-# from .decoder import sigmoid, gaussian, exponential
-# from .similarity_measure import adjacency, laplacian, sym_normalized_laplacian, NetMF, ppr, sum_power_tran, sim_rank
 
 class KL(StaticGraphEmbedding):
-
-    def __init__(self, embedding_dimension=64, decoder='sigmoid', similarity_measure="adjacency",
-                 learning_rate=1e-2, weight_decay=1e-7, display_step=25):
-        ''' Initialize the Bernoulli class
-
-        Args:
-            d: dimension of the embedding
-            distance_meassure: name of distance meassure ('sigmoid','gaussian',...)
+    def __init__(self, embedding_dimension=64, decoder='softmax', similarity_measure="transition",
+                 learning_rate=1e-2, weight_decay=1e-7, display_step=100):
+        '''
+        Parameters
+        ----------
+        embedding_dimension
+            Number of elements in the embedding vector representing a node, default 64.
+        decoder
+            One of {'sigmoid','guassian','exponential','dist2'}, default 'sigmoid'.
+        sim_similarity_measure
+            Only adjacency matrix is allowed as similarity measure, default 'adjacency'.
+        learning_rate
+            Initial learning rate for Adam optimizer, 1e-2.
+        weight_decay
+            Weight decay for Adam optimizer, default 1e-7.
+        display_step
+            Number of epochs after which the train error is logged for display on tensorboard and printed, default 25.
         '''
         self._embedding_dim = embedding_dimension
         self._decoder = decoder

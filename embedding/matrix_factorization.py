@@ -87,17 +87,43 @@ class MatrixFactorization(StaticGraphEmbedding):
         return f'{self._method_name}_{self._similarity_measure}_{self._embedding_dim}'
 
     def reset_epoch(self):
+        '''   
+        This method resets start and end point of the training.   
+
+        Return
+        ------
+        -
+        '''
         self._epoch_begin = 0
         self._epoch_end = 0
 
     def set_summary_folder(self, path):
+        '''   
+        This method creates a tensorboard summary writter which is used to log metrics during training and evaluation.
+           
+        Return
+        ------
+        -
+        '''
         self._summary_path = path
         self._writer = SummaryWriter(self._summary_path)
 
     def get_summary_writer(self):
+        '''   
+        Return
+        ------
+        Reference to tensorboard summary writer (private class variable).
+        '''
         return self._writer
 
     def learn_embedding(self, num_epochs):
+        '''   
+        This method uses Singular Value Decomposition to transform the input matrix of N x N down to N x embedding dimensions.
+        The paramter num_epochs exists only for compatibility purposes and can be ignored.
+        Return
+        ------
+        Embedding matrix of N x embedding dimensions as numpy matrix on the CPU
+        '''
         if self._setup_done == False:
             raise ValueError('Model input parameters not defined.')
 

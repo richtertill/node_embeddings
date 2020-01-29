@@ -6,9 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-
 def evaluateNodeClassification(emb,Y,embedding_method,round_id,train_ratio, undirected=True):
-    
     train_X, test_X, train_y, test_y = train_test_split(emb, Y, random_state = round_id,test_size =1-train_ratio,stratify=Y)
     rf = RandomForestClassifier(random_state=round_id)
     rf.fit(train_X, train_y)
@@ -27,6 +25,8 @@ def expNC(AdjMat,Y, dataset_name, embedding_method,rounds,result_folder,train_ra
     # Compute embedding only once
     embedding_method.reset_epoch()
     embedding_method.setup_model_input(AdjMat)
+    summary_folder = result_folder + "/train/" + str(dataset_name) +"/" + embedding_method.get_method_summary() + "/"
+    embedding_method.set_summary_folder(summary_folder)
     emb = embedding_method.learn_embedding(train_epochs)
                 
     for round_id in range(rounds):
