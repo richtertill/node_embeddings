@@ -1,0 +1,118 @@
+,URL,citation,maintainer
+citeseer,https://linqs.soe.ucsc.edu/data,"@article{sen2008collective,
+      title={Collective classification in network data},
+      author={Sen, Prithviraj and Namata, Galileo and Bilgic, Mustafa and Getoor, Lise and Galligher, Brian and Eliassi-Rad, Tina},
+      journal={AI magazine},
+      volume={29},
+      number={3},
+      pages={93},
+      year={2008}
+    }",shchur@in.tum.de
+citeseer_m10,https://github.com/shiruipan/TriDNR,"@article{pan2016tri,
+  title={Tri-party deep network representation},
+  author={Pan, Shirui and Wu, Jia and Zhu, Xingquan and Zhang, Chengqi and Wang, Yang},
+  journal={Network},
+  volume={11},
+  number={9},
+  pages={12},
+  year={2016}
+}",shchur@in.tum.de
+cora,https://linqs.soe.ucsc.edu/data,"@article{sen2008collective,
+      title={Collective classification in network data},
+      author={Sen, Prithviraj and Namata, Galileo and Bilgic, Mustafa and Getoor, Lise and Galligher, Brian and Eliassi-Rad, Tina},
+      journal={AI magazine},
+      volume={29},
+      number={3},
+      pages={93},
+      year={2008}
+    }",shchur@in.tum.de
+cora_ai,http://netkit-srl.sourceforge.net/data.html#cora,"@article{mccallum2000automating,
+  title={Automating the construction of internet portals with machine learning},
+  author={McCallum, Andrew Kachites and Nigam, Kamal and Rennie, Jason and Seymore, Kristie},
+  journal={Information Retrieval},
+  volume={3},
+  number={2},
+  pages={127--163},
+  year={2000},
+  publisher={Springer}
+}
+",bojchevs@in.tum.de
+cora_dsat,http://netkit-srl.sourceforge.net/data.html#cora,"@article{mccallum2000automating,
+  title={Automating the construction of internet portals with machine learning},
+  author={McCallum, Andrew Kachites and Nigam, Kamal and Rennie, Jason and Seymore, Kristie},
+  journal={Information Retrieval},
+  volume={3},
+  number={2},
+  pages={127--163},
+  year={2000},
+  publisher={Springer}
+}
+",bojchevs@in.tum.de
+cora_full,http://netkit-srl.sourceforge.net/data.html#cora,"@article{mccallum2000automating,
+  title={Automating the construction of internet portals with machine learning},
+  author={McCallum, Andrew Kachites and Nigam, Kamal and Rennie, Jason and Seymore, Kristie},
+  journal={Information Retrieval},
+  volume={3},
+  number={2},
+  pages={127--163},
+  year={2000},
+  publisher={Springer}
+}
+",bojchevs@in.tum.de
+cora_ml,http://netkit-srl.sourceforge.net/data.html#cora,"@article{mccallum2000automating,
+  title={Automating the construction of internet portals with machine learning},
+  author={McCallum, Andrew Kachites and Nigam, Kamal and Rennie, Jason and Seymore, Kristie},
+  journal={Information Retrieval},
+  volume={3},
+  number={2},
+  pages={127--163},
+  year={2000},
+  publisher={Springer}
+}
+",bojchevs@in.tum.de
+dblp,https://github.com/shiruipan/TriDNR,"@article{pan2016tri,
+  title={Tri-party deep network representation},
+  author={Pan, Shirui and Wu, Jia and Zhu, Xingquan and Zhang, Chengqi and Wang, Yang},
+  journal={Network},
+  volume={11},
+  number={9},
+  pages={12},
+  year={2016}
+}",shchur@in.tum.de
+hvr,N/A,N/A,bojchevs@in.tum.de
+karate,http://www-personal.umich.edu/~mejn/netdata/,"@article{zachary1977information,
+  title={An information flow model for conflict and fission in small groups},
+  author={Zachary, Wayne W},
+  journal={Journal of anthropological research},
+  volume={33},
+  number={4},
+  pages={452--473},
+  year={1977},
+  publisher={University of New Mexico}
+}",zuegnerd@in.tum.de
+parliament,N/A,N/A,bojchevs@in.tum.de
+polblogs,http://www-personal.umich.edu/~mejn/netdata/,"@inproceedings{adamic2005political,
+  title={The political blogosphere and the 2004 US election: divided they blog},
+  author={Adamic, Lada A and Glance, Natalie},
+  booktitle={Proceedings of the 3rd international workshop on Link discovery},
+  pages={36--43},
+  year={2005},
+  organization={ACM}
+}",zuegnerd@in.tum.de
+pubmed,https://linqs.soe.ucsc.edu/data,"@article{sen2008collective,
+      title={Collective classification in network data},
+      author={Sen, Prithviraj and Namata, Galileo and Bilgic, Mustafa and Getoor, Lise and Galligher, Brian and Eliassi-Rad, Tina},
+      journal={AI magazine},
+      volume={29},
+      number={3},
+      pages={93},
+      year={2008}
+    }",shchur@in.tum.de
+purdue_facebook,https://github.com/moore269/DCI,"@inproceedings{moore2017deep,
+  title={Deep Collective Inference.},
+  author={Moore, John and Neville, Jennifer},
+  booktitle={AAAI},
+  pages={2364--2372},
+  year={2017}
+}",shchur@in.tum.de
+social_papers,N/A,N/A,bojchevs@in.tum.de
