@@ -1,4 +1,4 @@
-# README
+# Node Embeddings Survey
 
 ## Authors
 This is a survey on Node Embeddings from [Christos Ziakas](https://www.linkedin.com/in/christos-ziakas-5783079a/), [Jan Rüttinger](https://github.com/JanRuettinger), and [Till Richter](https://www.linkedin.com/in/till-richter-659334157/). It was conducted in the [Machine Learning Lab](https://www.in.tum.de/en/daml/teaching/machine-learning-lab/) of the Data Analytics and Machine Learning Group from TUM.
